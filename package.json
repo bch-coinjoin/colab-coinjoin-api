@@ -1,7 +1,7 @@
 {
-  "name": "ipfs-service-provider",
-  "version": "3.0.0",
-  "description": "A Koa-based combination of a REST API and IPFS JSON RPC. Boilerplate for starting new projects.",
+  "name": "colab-coinjoin-api",
+  "version": "1.0.0",
+  "description": "p2p REST API & JSON RPC for coorinating CoinJoin transactions on BCH.",
   "main": "index.js",
   "type": "module",
   "scripts": {
@@ -19,10 +19,10 @@
   "author": "Chris Troutner <chris.troutner@gmail.com>",
   "license": "MIT",
   "apidoc": {
-    "title": "ipfs-service-provider",
+    "title": "colab-coinjoin-api",
     "url": "localhost:5000"
   },
-  "repository": "Permissionless-Software-Foundation/ipfs-service-provider",
+  "repository": "bch-coinjoin/colab-coinjoin-api",
   "dependencies": {
     "axios": "0.27.2",
     "bcryptjs": "2.4.3",
