@@ -15,6 +15,7 @@ This is a Koa web server that provides both a REST API over HTTP and a JSON RPC 
 
 ## Installation
 
+- `git clone https://github.com/bch-coinjoin/colab-coinjoin-api`
 
 ## License
 
