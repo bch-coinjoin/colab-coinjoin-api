@@ -94,5 +94,6 @@ export default {
     ? parseInt(process.env.IPFS_API_PORT)
     : 5001,
 
-  chatPubSubChan: 'psf-ipfs-chat-001'
+  chatPubSubChan: 'psf-ipfs-chat-001',
+  coinjoinPubSubChan: 'coinjoin-bch-001'
 }

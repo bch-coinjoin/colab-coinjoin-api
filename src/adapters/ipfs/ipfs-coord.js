@@ -113,6 +113,15 @@ class IpfsCoordAdapter {
       this.ipfsCoord.thisNode
     )
   }
+
+  // Subscribe to the coinjoin pubsub channel
+  async subscribeToCoinJoin () {
+    await this.ipfsCoord.adapters.pubsub.subscribeToPubsubChannel(
+      this.config.coinjoinPubSubChan,
+      console.log,
+      this.ipfsCoord.thisNode
+    )
+  }
 }
 
 export default IpfsCoordAdapter

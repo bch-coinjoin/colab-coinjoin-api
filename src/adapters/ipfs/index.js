@@ -45,6 +45,9 @@ class IPFS {
       // Subscribe to the chat pubsub channel
       await this.ipfsCoordAdapter.subscribeToChat()
 
+      // Subscribe to the CoinJoin pubsub channel
+      await this.ipfsCoordAdapter.subscribeToCoinJoin()
+
       return true
     } catch (err) {
       console.error('Error in adapters/ipfs/index.js/start()')
