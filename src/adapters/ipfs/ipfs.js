@@ -16,7 +16,7 @@ const Ctl = require('ipfsd-ctl')
 const IPFSexternal = require('ipfs-http-client')
 const fs = require('fs')
 const http = require('http')
-const {path} = require('go-ipfs')
+const { path } = require('go-ipfs')
 
 // Local libraries
 const config = require('../../../config')
@@ -40,7 +40,7 @@ class IpfsAdapter {
     this.fs = fs
   }
 
-  async start() {
+  async start () {
     try {
       // let Ctl
       // try {
@@ -54,13 +54,13 @@ class IpfsAdapter {
         ipfsHttpModule: IPFSexternal,
         ipfsBin: path,
         ipfsOptions: {
-          repo: '/home/trout/.ipfs',
+          repo: '/home/trout/.ipfs'
           // start: true
         },
         remote: false,
         disposable: false,
         test: false,
-        args: [ '--agent-version-suffix=desktop', '--migrate', '--enable-gc', '--enable-pubsub-experiment' ]
+        args: ['--agent-version-suffix=desktop', '--migrate', '--enable-gc', '--enable-pubsub-experiment']
         // args: ['--migrate', '--enable-gc', '--enable-pubsub-experiment' ]
       })
       console.log('ipfsd: ', ipfsd)
@@ -74,7 +74,6 @@ class IpfsAdapter {
 
       await ipfsd.stop()
       console.log('Success!!!!!!!')
-
     } catch (err) {
       console.error('Error in ipfs.js/start(): ', err)
       throw err
