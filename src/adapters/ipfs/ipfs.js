@@ -12,9 +12,11 @@
 // const IPFS = require('ipfs')
 // const IPFS = require('@chris.troutner/ipfs')
 // const IPFSembedded = require('ipfs')
+const Ctl = require('ipfsd-ctl')
 const IPFSexternal = require('ipfs-http-client')
 const fs = require('fs')
 const http = require('http')
+const {path} = require('go-ipfs')
 
 // Local libraries
 const config = require('../../../config')
@@ -38,8 +40,49 @@ class IpfsAdapter {
     this.fs = fs
   }
 
+  async start() {
+    try {
+      // let Ctl
+      // try {
+      //   Ctl = await import('ipfsd-ctl')
+      //   console.log('Ctl: ', Ctl)
+      // } catch(err) {
+      //   console.error('Error importing ipfsd-ctl')
+      // }
+
+      const ipfsd = await Ctl.createController({
+        ipfsHttpModule: IPFSexternal,
+        ipfsBin: path,
+        ipfsOptions: {
+          repo: '/home/trout/.ipfs',
+          // start: true
+        },
+        remote: false,
+        disposable: false,
+        test: false,
+        args: [ '--agent-version-suffix=desktop', '--migrate', '--enable-gc', '--enable-pubsub-experiment' ]
+        // args: ['--migrate', '--enable-gc', '--enable-pubsub-experiment' ]
+      })
+      console.log('ipfsd: ', ipfsd)
+
+      // await ipfsd.start()
+
+      const idRes = await ipfsd.api.id()
+      console.log('idRes: ', idRes)
+      // const id = idRes.id
+      // console.log(`IPFS ID: `, id)
+
+      await ipfsd.stop()
+      console.log('Success!!!!!!!')
+
+    } catch (err) {
+      console.error('Error in ipfs.js/start(): ', err)
+      throw err
+    }
+  }
+
   // Start an IPFS node.
-  async start () {
+  async start2 () {
     try {
       // Ipfs Options
       // const ipfsOptionsEmbedded = {
