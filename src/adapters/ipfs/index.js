@@ -37,6 +37,8 @@ class IPFS {
         ipfs: this.ipfs,
         tcpPort: this.config.ipfsTcpPort,
         wsPort: this.config.ipfsWsPort
+        // nodeType: 'external',
+        // type: 'external'
       })
       await this.ipfsCoordAdapter.start()
       console.log('ipfs-coord is ready.')

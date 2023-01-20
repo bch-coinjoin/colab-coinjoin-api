@@ -71,9 +71,9 @@ class IpfsCoordAdapter {
     }
 
     // Production env uses external go-ipfs node.
-    if (this.config.isProduction) {
-      ipfsCoordOptions.nodeType = 'external'
-    }
+    // if (this.config.isProduction) {
+    ipfsCoordOptions.nodeType = 'external'
+    // }
 
     this.ipfsCoord = new this.IpfsCoord(ipfsCoordOptions)
 

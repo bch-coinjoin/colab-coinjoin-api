@@ -40,44 +40,37 @@ class IpfsAdapter {
     this.fs = fs
   }
 
+  // Start go-ipfs.
   async start () {
     try {
-      // let Ctl
-      // try {
-      //   Ctl = await import('ipfsd-ctl')
-      //   console.log('Ctl: ', Ctl)
-      // } catch(err) {
-      //   console.error('Error importing ipfsd-ctl')
-      // }
-
-      console.log('go-ipfs binary path: ', path())
+      // console.log('go-ipfs binary path: ', path())
 
       const ipfsd = await Ctl.createController({
         ipfsHttpModule: IPFSexternal,
         ipfsBin: path(),
         ipfsOptions: {
-          repo: '/home/trout/.ipfs'
-          // start: true
+          // repo: '/home/trout/.ipfs'
+          start: true,
+          init: true
         },
-        remote: false,
-        disposable: false,
-        test: false,
-        args: ['--agent-version-suffix=desktop', '--migrate', '--enable-gc', '--enable-pubsub-experiment']
-        // args: ['--migrate', '--enable-gc', '--enable-pubsub-experiment' ]
+        // remote: false,
+        disposable: true,
+        // test: false,
+        args: ['--migrate', '--enable-gc', '--enable-pubsub-experiment']
       })
-      console.log('ipfsd: ', ipfsd)
-
-      await ipfsd.init()
-
-      await ipfsd.start()
+      // console.log('ipfsd: ', ipfsd)
 
       const idRes = await ipfsd.api.id()
-      console.log('idRes: ', idRes)
-      // const id = idRes.id
-      // console.log(`IPFS ID: `, id)
+      console.log('IPFS ID: ', idRes.id)
 
-      await ipfsd.stop()
-      console.log('Success!!!!!!!')
+      // await ipfsd.stop()
+      // console.log('Success!!!!!!!')
+
+      // Signal that this adapter is ready.
+      this.isReady = true
+
+      this.ipfs = ipfsd.api
+      return this.ipfs
     } catch (err) {
       console.error('Error in ipfs.js/start(): ', err)
       throw err
