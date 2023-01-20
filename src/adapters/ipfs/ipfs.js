@@ -50,9 +50,11 @@ class IpfsAdapter {
       //   console.error('Error importing ipfsd-ctl')
       // }
 
+      console.log('go-ipfs binary path: ', path())
+
       const ipfsd = await Ctl.createController({
         ipfsHttpModule: IPFSexternal,
-        ipfsBin: path,
+        ipfsBin: path(),
         ipfsOptions: {
           repo: '/home/trout/.ipfs'
           // start: true
@@ -65,7 +67,9 @@ class IpfsAdapter {
       })
       console.log('ipfsd: ', ipfsd)
 
-      // await ipfsd.start()
+      await ipfsd.init()
+
+      await ipfsd.start()
 
       const idRes = await ipfsd.api.id()
       console.log('idRes: ', idRes)
