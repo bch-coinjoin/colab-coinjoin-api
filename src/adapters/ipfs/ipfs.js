@@ -15,7 +15,7 @@
 const Ctl = require('ipfsd-ctl')
 const IPFSexternal = require('ipfs-http-client')
 const fs = require('fs')
-const http = require('http')
+// const http = require('http')
 const { path } = require('go-ipfs')
 
 // Local libraries
@@ -27,6 +27,8 @@ class IpfsAdapter {
   constructor (localConfig) {
     // Encapsulate dependencies
     this.config = config
+    this.ipfsd = null // placeholder
+    this.ipfs = null // placeholder
 
     // Choose the IPFS constructor based on the config settings.
     // this.IPFS = IPFSembedded // default
@@ -40,36 +42,43 @@ class IpfsAdapter {
     this.fs = fs
   }
 
-  // Start go-ipfs.
+  // Instantiate the go-ipfs IPFS Daemon
+  async launchIpfs (autoStart = true) {
+    const ipfsd = await Ctl.createController({
+      ipfsHttpModule: IPFSexternal,
+      ipfsBin: path(),
+      ipfsOptions: {
+        // repo: '/home/trout/.ipfs'
+        start: autoStart,
+        init: true
+      },
+      // remote: false,
+      disposable: true,
+      // test: false,
+      args: ['--migrate', '--enable-gc', '--enable-pubsub-experiment']
+    })
+    // console.log('ipfsd: ', ipfsd)
+
+    this.ipfsd = ipfsd
+
+    return this.ipfsd
+  }
+
+  // Start go-ipfs daemon, initialize IPFS, and get the ID for the node.
   async start () {
     try {
-      // console.log('go-ipfs binary path: ', path())
+      // Start the go-ipfs node.
+      await this.launchIpfs()
 
-      const ipfsd = await Ctl.createController({
-        ipfsHttpModule: IPFSexternal,
-        ipfsBin: path(),
-        ipfsOptions: {
-          // repo: '/home/trout/.ipfs'
-          start: true,
-          init: true
-        },
-        // remote: false,
-        disposable: true,
-        // test: false,
-        args: ['--migrate', '--enable-gc', '--enable-pubsub-experiment']
-      })
-      // console.log('ipfsd: ', ipfsd)
-
-      const idRes = await ipfsd.api.id()
+      // Get the ID.
+      const idRes = await this.ipfsd.api.id()
       console.log('IPFS ID: ', idRes.id)
-
-      // await ipfsd.stop()
-      // console.log('Success!!!!!!!')
 
       // Signal that this adapter is ready.
       this.isReady = true
 
-      this.ipfs = ipfsd.api
+      this.ipfs = this.ipfsd.api
+
       return this.ipfs
     } catch (err) {
       console.error('Error in ipfs.js/start(): ', err)
@@ -77,81 +86,9 @@ class IpfsAdapter {
     }
   }
 
-  // Start an IPFS node.
-  async start2 () {
-    try {
-      // Ipfs Options
-      // const ipfsOptionsEmbedded = {
-      //   repo: IPFS_DIR,
-      //   start: true,
-      //   config: {
-      //     relay: {
-      //       enabled: true, // enable circuit relay dialer and listener
-      //       hop: {
-      //         enabled: config.isCircuitRelay // enable circuit relay HOP (make this node a relay)
-      //       }
-      //     },
-      //     pubsub: true, // enable pubsub
-      //     Swarm: {
-      //       ConnMgr: {
-      //         HighWater: 30,
-      //         LowWater: 10
-      //       }
-      //     },
-      //     Addresses: {
-      //       Swarm: [
-      //         `/ip4/0.0.0.0/tcp/${this.config.ipfsTcpPort}`,
-      //         `/ip4/0.0.0.0/tcp/${this.config.ipfsWsPort}/ws`
-      //       ]
-      //     },
-      //     Datastore: {
-      //       StorageMax: '2GB',
-      //       StorageGCWatermark: 50,
-      //       GCPeriod: '15m'
-      //     }
-      //   }
-      // }
-
-      const ipfsOptionsExternal = {
-        host: this.config.ipfsHost,
-        port: this.config.ipfsApiPort,
-        agent: http.Agent({ keepAlive: true, maxSockets: 2000 })
-      }
-
-      // let ipfsOptions = ipfsOptionsEmbedded
-      // if (this.config.isProduction) {
-      //   ipfsOptions = ipfsOptionsExternal
-      // }
-      const ipfsOptions = ipfsOptionsExternal
-
-      // Create a new IPFS node.
-      this.ipfs = await this.IPFS.create(ipfsOptions)
-
-      // Set the 'server' profile so the node does not scan private networks.
-      await this.ipfs.config.profiles.apply('server')
-
-      // Debugging: Display IPFS config settings.
-      // const configSettings = await this.ipfs.config.getAll()
-      // console.log(`configSettings: ${JSON.stringify(configSettings, null, 2)}`)
-
-      // Signal that this adapter is ready.
-      this.isReady = true
-
-      return this.ipfs
-    } catch (err) {
-      console.error('Error in ipfs.js/start()')
-
-      // If IPFS crashes because the /blocks directory is full, wipe the directory.
-      // if (err.message.includes('No space left on device')) {
-      //   this.rmBlocksDir()
-      // }
-
-      throw err
-    }
-  }
-
   async stop () {
-    await this.ipfs.stop()
+    await this.ipfsd.stop()
+    // await this.ipfs.stop()
 
     return true
   }

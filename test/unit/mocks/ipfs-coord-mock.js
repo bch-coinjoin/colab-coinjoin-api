@@ -10,6 +10,8 @@ class IPFSCoord {
   async start () {}
 
   async subscribeToChat() {}
+
+  async subscribeToCoinJoin() {}
 }
 
 module.exports = IPFSCoord
