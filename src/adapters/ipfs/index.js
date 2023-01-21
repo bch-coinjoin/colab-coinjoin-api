@@ -3,10 +3,9 @@
 */
 
 // Local libraries
-import IpfsAdapter from './ipfs.js'
-
-import IpfsCoordAdapter from './ipfs-coord.js'
-import config from '../../../config/index.js'
+const IpfsAdapter = require('./ipfs')
+const IpfsCoordAdapter = require('./ipfs-coord')
+const config = require('../../../config')
 
 class IPFS {
   constructor (localConfig = {}) {
@@ -38,12 +37,17 @@ class IPFS {
         ipfs: this.ipfs,
         tcpPort: this.config.ipfsTcpPort,
         wsPort: this.config.ipfsWsPort
+        // nodeType: 'external',
+        // type: 'external'
       })
       await this.ipfsCoordAdapter.start()
       console.log('ipfs-coord is ready.')
 
       // Subscribe to the chat pubsub channel
       await this.ipfsCoordAdapter.subscribeToChat()
+
+      // Subscribe to the CoinJoin pubsub channel
+      await this.ipfsCoordAdapter.subscribeToCoinJoin()
 
       return true
     } catch (err) {
@@ -60,4 +64,4 @@ class IPFS {
   }
 }
 
-export default IPFS
+module.exports = IPFS

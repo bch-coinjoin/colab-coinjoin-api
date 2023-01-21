@@ -5,15 +5,12 @@
 */
 
 // Global npm libraries
-import IpfsCoord from 'ipfs-coord-esm'
-
-// import BCHJS from '@psf/bch-js';
-import SlpWallet from 'minimal-slp-wallet'
-import publicIp from 'public-ip'
+const IpfsCoord = require('ipfs-coord')
+const BCHJS = require('@psf/bch-js')
+const publicIp = require('public-ip')
 
 // Local libraries
-import config from '../../../config/index.js'
-
+const config = require('../../../config')
 // const JSONRPC = require('../../controllers/json-rpc/')
 
 let _this
@@ -31,8 +28,7 @@ class IpfsCoordAdapter {
     // Encapsulate dependencies
     this.IpfsCoord = IpfsCoord
     this.ipfsCoord = {}
-    // this.bchjs = new BCHJS()
-    this.wallet = new SlpWallet()
+    this.bchjs = new BCHJS()
     this.config = config
     this.publicIp = publicIp
 
@@ -44,9 +40,6 @@ class IpfsCoordAdapter {
 
   async start () {
     const circuitRelayInfo = {}
-
-    // Wait for the BCH wallet to create the wallet.
-    await this.wallet.walletInfoPromise
 
     // If configured as a Circuit Relay, get the public IP addresses for this node.
     if (this.config.isCircuitRelay) {
@@ -68,7 +61,7 @@ class IpfsCoordAdapter {
       ipfs: this.ipfs,
       type: 'node.js',
       // type: 'browser',
-      wallet: this.wallet,
+      bchjs: this.bchjs,
       privateLog: console.log, // Default to console.log
       isCircuitRelay: this.config.isCircuitRelay,
       circuitRelayInfo,
@@ -78,9 +71,9 @@ class IpfsCoordAdapter {
     }
 
     // Production env uses external go-ipfs node.
-    if (this.config.isProduction) {
-      ipfsCoordOptions.nodeType = 'external'
-    }
+    // if (this.config.isProduction) {
+    ipfsCoordOptions.nodeType = 'external'
+    // }
 
     this.ipfsCoord = new this.IpfsCoord(ipfsCoordOptions)
 
@@ -113,6 +106,15 @@ class IpfsCoordAdapter {
       this.ipfsCoord.thisNode
     )
   }
+
+  // Subscribe to the coinjoin pubsub channel
+  async subscribeToCoinJoin () {
+    await this.ipfsCoord.adapters.pubsub.subscribeToPubsubChannel(
+      this.config.coinjoinPubSubChan,
+      console.log,
+      this.ipfsCoord.thisNode
+    )
+  }
 }
 
-export default IpfsCoordAdapter
+module.exports = IpfsCoordAdapter

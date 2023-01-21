@@ -2,12 +2,11 @@
   Unit tests for the IPFS Adapter.
 */
 
-import { assert } from 'chai'
-
-import sinon from 'sinon'
-import IPFSLib from '../../../src/adapters/ipfs/ipfs.js'
-import create from '../mocks/ipfs-mock.js'
-import config from '../../../config/index.js'
+const assert = require('chai').assert
+const sinon = require('sinon')
+const IPFSLib = require('../../../src/adapters/ipfs/ipfs')
+// const IPFSMock = require('../mocks/ipfs-mock')
+const config = require('../../../config')
 
 // config.isProduction =  true;
 describe('#IPFS-adapter', () => {
@@ -42,35 +41,36 @@ describe('#IPFS-adapter', () => {
     })
   })
 
-  describe('#start', () => {
-    it('should return a promise that resolves into an instance of IPFS.', async () => {
-      // Mock dependencies.
-      uut.create = create
+  describe('#launchIpfs', () => {
+    it('should create an instance of IPFS', async () => {
+      const ipfsd = await uut.launchIpfs(false)
 
-      const result = await uut.start()
-      // console.log('result: ', result)
-
-      assert.equal(uut.isReady, true)
-
-      assert.property(result, 'config')
+      assert.property(ipfsd, 'api')
     })
+  })
 
-    it('should return a promise that resolves into an instance of IPFS in production mode.', async () => {
-      // Mock dependencies.
-      uut.create = create
-      uut.config.isProduction = true
+  describe('#start', () => {
+    it('should return a promise that resolves into an instance of IPFS', async () => {
+      // Mock dependencies and force desired code path
+      sandbox.stub(uut, 'launchIpfs').resolves()
+      uut.ipfsd = {
+        api: {
+          id: async () => { return { id: 'test' } }
+        }
+      }
+
       const result = await uut.start()
       // console.log('result: ', result)
 
       assert.equal(uut.isReady, true)
 
-      assert.property(result, 'config')
+      assert.property(result, 'id')
     })
 
     it('should catch and throw an error', async () => {
       try {
         // Force an error
-        sandbox.stub(uut, 'create').rejects(new Error('test error'))
+        sandbox.stub(uut, 'launchIpfs').rejects(new Error('test error'))
 
         await uut.start()
 
@@ -85,7 +85,7 @@ describe('#IPFS-adapter', () => {
   describe('#stop', () => {
     it('should stop the IPFS node', async () => {
       // Mock dependencies
-      uut.ipfs = {
+      uut.ipfsd = {
         stop: () => {
         }
       }
