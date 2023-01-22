@@ -52,9 +52,9 @@ class IpfsAdapter {
         start: autoStart,
         init: true
       },
-      // remote: false,
+      remote: false,
       disposable: true,
-      // test: false,
+      test: false,
       args: ['--migrate', '--enable-gc', '--enable-pubsub-experiment']
     })
     // console.log('ipfsd: ', ipfsd)
