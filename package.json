@@ -1,6 +1,6 @@
 {
   "name": "colab-coinjoin-api",
-  "version": "1.0.0",
+  "version": "2.0.0",
   "description": "p2p REST API & JSON RPC for coorinating CoinJoin transactions on BCH.",
   "main": "index.js",
   "scripts": {
