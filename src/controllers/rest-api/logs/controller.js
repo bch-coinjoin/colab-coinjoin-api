@@ -49,9 +49,11 @@ class LogsApi {
       // console.log('entering getLogs()')
 
       // Get the user-provided password.
-      const password = ctx.request.body.password
-      const result = await _this.logsApiLib.getLogs(password)
-      ctx.body = result
+      // const password = ctx.request.body.password
+      // const result = await _this.logsApiLib.getLogs(password)
+      // ctx.body = result
+
+      ctx.body = true
     } catch (err) {
       if (err && err.message) {
         ctx.throw(422, err.message)

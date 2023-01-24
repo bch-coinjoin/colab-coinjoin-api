@@ -10,7 +10,7 @@
 const AuthRESTController = require('./auth')
 const UserRouter = require('./users')
 const ContactRESTController = require('./contact')
-const LogsRESTController = require('./logs')
+// const LogsRESTController = require('./logs')
 
 class RESTControllers {
   constructor (localConfig = {}) {
@@ -50,8 +50,8 @@ class RESTControllers {
     contactRESTController.attach(app)
 
     // Attach the REST API Controllers associated with the /logs route
-    const logsRESTController = new LogsRESTController(dependencies)
-    logsRESTController.attach(app)
+    // const logsRESTController = new LogsRESTController(dependencies)
+    // logsRESTController.attach(app)
   }
 }
 
