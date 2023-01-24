@@ -1,5 +1,5 @@
 const assert = require('chai').assert
-const { Wlogger } = require('../../../src/adapters/wlogger')
+const { Wlogger } = require('../../../src/adapters/wlogger-old')
 
 const sinon = require('sinon')
 
