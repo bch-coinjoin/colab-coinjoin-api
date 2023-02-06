@@ -64,12 +64,12 @@ class Controllers {
       adapters: this.adapters,
       useCases: this.useCases
     })
-    console.log('jsonRpcController.ipfsCoord: ', jsonRpcController.ipfsCoord)
+    // console.log('jsonRpcController.ipfsCoord: ', jsonRpcController.ipfsCoord)
 
     // Attach the input of the JSON RPC router to the output of ipfs-coord.
-    // this.adapters.ipfs.ipfsCoordAdapter.attachRPCRouter(
-    //   jsonRpcController.router
-    // )
+    this.adapters.ipfs.ipfsCoordAdapter.attachRPCRouter(
+      jsonRpcController.router
+    )
   }
 }
 

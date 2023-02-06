@@ -7,7 +7,7 @@ const jsonrpc = require('jsonrpc-lite')
 
 // Local support libraries
 const { wlogger } = require('../../adapters/wlogger')
-const UserController = require('./users')
+// const UserController = require('./users')
 const AuthController = require('./auth')
 const AboutController = require('./about')
 
@@ -32,7 +32,7 @@ class JSONRPC {
     // Encapsulate dependencies
     this.ipfsCoord = this.adapters.ipfs.ipfsCoordAdapter.ipfsCoord
     this.jsonrpc = jsonrpc
-    this.userController = new UserController(localConfig)
+    // this.userController = new UserController(localConfig)
     this.authController = new AuthController(localConfig)
     this.aboutController = new AboutController()
 
