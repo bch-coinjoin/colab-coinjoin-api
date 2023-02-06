@@ -116,24 +116,24 @@ describe('#JSON RPC', () => {
       assert.isOk('Not throwing an error is a pass.')
     })
 
-    it('should route to users handler', async () => {
-      const id = uid()
-      const userCall = jsonrpc.request(id, 'users', { endpoint: 'getAll' })
-      const jsonStr = JSON.stringify(userCall, null, 2)
-
-      // Mock the users controller.
-      sandbox.stub(uut.userController, 'userRouter').resolves('true')
-
-      const result = await uut.router(jsonStr, 'peerA')
-      // console.log(result)
-
-      const obj = JSON.parse(result.retStr)
-      // console.log('obj: ', obj)
-
-      assert.equal(obj.result.value, 'true')
-      assert.equal(obj.result.method, 'users')
-      assert.equal(obj.id, id)
-    })
+    // it('should route to users handler', async () => {
+    //   const id = uid()
+    //   const userCall = jsonrpc.request(id, 'users', { endpoint: 'getAll' })
+    //   const jsonStr = JSON.stringify(userCall, null, 2)
+    //
+    //   // Mock the users controller.
+    //   sandbox.stub(uut.userController, 'userRouter').resolves('true')
+    //
+    //   const result = await uut.router(jsonStr, 'peerA')
+    //   // console.log(result)
+    //
+    //   const obj = JSON.parse(result.retStr)
+    //   // console.log('obj: ', obj)
+    //
+    //   assert.equal(obj.result.value, 'true')
+    //   assert.equal(obj.result.method, 'users')
+    //   assert.equal(obj.id, id)
+    // })
 
     it('should route to auth handler', async () => {
       const id = uid()

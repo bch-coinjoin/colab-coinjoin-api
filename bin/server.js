@@ -12,7 +12,7 @@ const Koa = require('koa')
 const bodyParser = require('koa-bodyparser')
 const convert = require('koa-convert')
 const logger = require('koa-logger')
-const mongoose = require('mongoose')
+// const mongoose = require('mongoose')
 const session = require('koa-generic-session')
 const passport = require('koa-passport')
 const mount = require('koa-mount')
@@ -31,7 +31,7 @@ class Server {
     // Encapsulate dependencies
     this.adminLib = new AdminLib()
     this.controllers = new Controllers()
-    this.mongoose = mongoose
+    // this.mongoose = mongoose
     this.config = config
     this.process = process
   }
@@ -43,15 +43,15 @@ class Server {
       app.keys = [this.config.session]
 
       // Connect to the Mongo Database.
-      this.mongoose.Promise = global.Promise
-      this.mongoose.set('useCreateIndex', true) // Stop deprecation warning.
-      console.log(
-        `Connecting to MongoDB with this connection string: ${this.config.database}`
-      )
-      await this.mongoose.connect(this.config.database, {
-        useUnifiedTopology: true,
-        useNewUrlParser: true
-      })
+      // this.mongoose.Promise = global.Promise
+      // this.mongoose.set('useCreateIndex', true) // Stop deprecation warning.
+      // console.log(
+      //   `Connecting to MongoDB with this connection string: ${this.config.database}`
+      // )
+      // await this.mongoose.connect(this.config.database, {
+      //   useUnifiedTopology: true,
+      //   useNewUrlParser: true
+      // })
 
       console.log(`Starting environment: ${this.config.env}`)
       console.log(`Debug level: ${this.config.debugLevel}`)

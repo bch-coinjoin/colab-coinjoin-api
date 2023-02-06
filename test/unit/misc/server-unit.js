@@ -23,7 +23,7 @@ describe('#server', () => {
   describe('#startServer', () => {
     it('should start the server', async () => {
       // Mock dependencies
-      sandbox.stub(uut.mongoose, 'connect').resolves()
+      // sandbox.stub(uut.mongoose, 'connect').resolves()
       sandbox.stub(uut.controllers, 'initAdapters').resolves()
       sandbox.stub(uut.controllers, 'initUseCases').resolves()
       sandbox.stub(uut.controllers, 'attachRESTControllers').resolves()
@@ -43,18 +43,18 @@ describe('#server', () => {
       uut.config.env = 'test'
     })
 
-    it('should exit on failure', async () => {
-      // Force an error
-      sandbox.stub(uut.mongoose, 'connect').rejects(new Error('test error'))
-
-      // Prevent default behavior of exiting the program.
-      sandbox.stub(uut, 'sleep').resolves()
-      sandbox.stub(uut.process, 'exit').returns()
-
-      await uut.startServer()
-
-      // Not throwing an error is a success
-    })
+    // it('should exit on failure', async () => {
+    //   // Force an error
+    //   sandbox.stub(uut.mongoose, 'connect').rejects(new Error('test error'))
+    //
+    //   // Prevent default behavior of exiting the program.
+    //   sandbox.stub(uut, 'sleep').resolves()
+    //   sandbox.stub(uut.process, 'exit').returns()
+    //
+    //   await uut.startServer()
+    //
+    //   // Not throwing an error is a success
+    // })
   })
 
   describe('#sleep', () => {

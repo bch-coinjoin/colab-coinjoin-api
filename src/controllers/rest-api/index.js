@@ -8,7 +8,7 @@
 
 // Load the REST API Controllers.
 const AuthRESTController = require('./auth')
-const UserRouter = require('./users')
+// const UserRouter = require('./users')
 const ContactRESTController = require('./contact')
 // const LogsRESTController = require('./logs')
 
@@ -42,8 +42,8 @@ class RESTControllers {
     authRESTController.attach(app)
 
     // Attach the REST API Controllers associated with the /user route
-    const userRouter = new UserRouter(dependencies)
-    userRouter.attach(app)
+    // const userRouter = new UserRouter(dependencies)
+    // userRouter.attach(app)
 
     // Attach the REST API Controllers associated with the /contact route
     const contactRESTController = new ContactRESTController(dependencies)

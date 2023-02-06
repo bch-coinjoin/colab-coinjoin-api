@@ -4,7 +4,7 @@
   https://troutsblog.com/blog/clean-architecture
 */
 
-const UserUseCases = require('./user')
+// const UserUseCases = require('./user')
 
 class UseCases {
   constructor (localConfig = {}) {
@@ -16,7 +16,7 @@ class UseCases {
     }
 
     // console.log('use-cases/index.js localConfig: ', localConfig)
-    this.user = new UserUseCases(localConfig)
+    // this.user = new UserUseCases(localConfig)
   }
 
   // Run any startup Use Cases at the start of the app.
