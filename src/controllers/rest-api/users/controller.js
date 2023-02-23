@@ -97,7 +97,7 @@ class UserRESTControllerLib {
    * @apiGroup REST Users
    *
    * @apiExample Example usage:
-   * curl -H "Content-Type: application/json" -X GET localhost:5000/users
+   * curl -H "Content-Type: application/json" -X GET localhost:5540/wallet
    *
    * @apiSuccess {Object[]} users           Array of user objects
    * @apiSuccess {ObjectId} users._id       User id
@@ -124,7 +124,7 @@ class UserRESTControllerLib {
 
       ctx.body = { users }
     } catch (err) {
-      wlogger.error('Error in users/controller.js/getUsers(): '.err)
+      wlogger.error('Error in users/controller.js/getUsers(): ', err)
       ctx.throw(422, err.message)
     }
   }
