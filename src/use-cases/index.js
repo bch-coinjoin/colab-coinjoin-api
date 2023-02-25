@@ -5,6 +5,7 @@
 */
 
 // const UserUseCases = require('./user')
+const ColabCoinJoin = require('./colab-coinjoin')
 
 class UseCases {
   constructor (localConfig = {}) {
@@ -17,6 +18,7 @@ class UseCases {
 
     // console.log('use-cases/index.js localConfig: ', localConfig)
     // this.user = new UserUseCases(localConfig)
+    this.coinjoin = new ColabCoinJoin(localConfig)
   }
 
   // Run any startup Use Cases at the start of the app.

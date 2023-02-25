@@ -92,5 +92,8 @@ module.exports = {
     : 5001,
 
   chatPubSubChan: 'psf-ipfs-chat-001',
-  coinjoinPubSubChan: 'coinjoin-bch-001'
+
+  // CoinJoin Configs
+  coinjoinPubSubChan: 'bch-coinjoin-001',
+  minCoinJoinParticipants: 3
 }

@@ -351,16 +351,16 @@ describe('#users-use-case', () => {
   })
 
   describe('#authUser', () => {
-    // it('should return a user db model after successful authentication', async () => {
-    //   // sandbox.stub(uut.UserModel, 'findOne').resolves(true)
-    //
-    //   await uut.authUser('test@test.com', 'password')
-    //   // console.log('user: ', user)
-    //
-    // // assert.property(user, '_id')
-    // // assert.property(user, 'email')
-    // // assert.property(user, 'name')
-    // })
+    it('should return a user db model after successful authentication', async () => {
+      // sandbox.stub(uut.UserModel, 'findOne').resolves(true)
+
+      await uut.authUser('test@test.com', 'password')
+      // console.log('user: ', user)
+
+    // assert.property(user, '_id')
+    // assert.property(user, 'email')
+    // assert.property(user, 'name')
+    })
 
     it('should throw an error if no user matches the login', async () => {
       try {

@@ -28,6 +28,7 @@ class TimerControllers {
 
     // Bind 'this' object to all subfunctions.
     this.exampleTimerFunc = this.exampleTimerFunc.bind(this)
+    this.announceColabCoinJoin = this.announceColabCoinJoin.bind(this)
 
     this.startTimers()
   }
@@ -36,13 +37,26 @@ class TimerControllers {
   startTimers () {
     // Any new timer control functions can be added here. They will be started
     // when the server starts.
-    this.optimizeWalletHandle = setInterval(this.exampleTimerFunc, 60000 * 10)
+    // this.optimizeWalletHandle = setInterval(this.exampleTimerFunc, 30000)
+
+    this.announceTimerHandle = setInterval(this.announceColabCoinJoin, 30000)
 
     return true
   }
 
   stopTimers () {
     clearInterval(this.optimizeWalletHandle)
+  }
+
+  async announceColabCoinJoin () {
+    try {
+      await this.useCases.coinjoin.cjAnnounce()
+    } catch (err) {
+      console.error('Error in timer controller announceColabCoinJoin(): ', err)
+
+      // Note: Do not throw an error. This is a top-level function.
+      return false
+    }
   }
 
   // Replace this example function with your own timer handler.
