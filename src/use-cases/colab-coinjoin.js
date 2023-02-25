@@ -20,6 +20,9 @@ class ColabCoinJoin {
     }
 
     // Encapsulate dependencies
+
+    // Bind the 'this' object to subfunctions in this library.
+    this.handleCoinJoinPubsub = this.handleCoinJoinPubsub.bind(this)
   }
 
   // Announces the node on the bch-coinjoin-001 pubsub channel so that other
@@ -42,7 +45,7 @@ class ColabCoinJoin {
         minPlayers: MIN_PLAYERS
       }
       const msgStr = JSON.stringify(announceObj)
-      console.log(`CoinJoin Announcement Object: ${JSON.stringify(announceObj, null, 2)}`)
+      console.log(`Broadcasted CoinJoin Announcement Object: ${JSON.stringify(announceObj, null, 2)}`)
 
       // Publish the announcement object to the coinjoin pubsub channel
       await ipfsCoord.adapters.pubsub.messaging.publishToPubsubChannel(
@@ -55,6 +58,19 @@ class ColabCoinJoin {
     } catch (err) {
       console.error('Error in cjAnnounce()')
       throw err
+    }
+  }
+
+  // This handler is passed to the ipfs-coord library. It handles incoming messages
+  // on the CoinJoin pubsub announcement channel.
+  handleCoinJoinPubsub (announceObj) {
+    try {
+      console.log('handleCoinJoinPubsub() announceObj: ', announceObj)
+    } catch (err) {
+      console.error('Error in handleCoinJoinPubsub(): ', err)
+
+      // Do not throw error. This is a top-level event handler.
+      return false
     }
   }
 }

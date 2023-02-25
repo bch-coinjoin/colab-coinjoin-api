@@ -28,7 +28,7 @@
     "glob": "7.1.6",
     "go-ipfs": "0.17.0",
     "ipfs": "0.58.6",
-    "ipfs-coord": "8.0.6",
+    "ipfs-coord": "8.0.7",
     "ipfs-http-client": "55.0.0",
     "ipfsd-ctl": "10.0.6",
     "jsonrpc-lite": "2.2.0",
