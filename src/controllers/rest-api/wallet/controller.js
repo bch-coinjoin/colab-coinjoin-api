@@ -30,6 +30,33 @@ class WalletRESTControllerLib {
   }
 
   /**
+   * @api {post} /wallet Pass mnemonic and start Colab CoinJoin session
+   * @apiPermission public
+   * @apiName CoinJoin Wallet
+   * @apiGroup REST Wallet
+   *
+   * @apiExample Example usage:
+   * curl -H "Content-Type: application/json" -X POST -d '{ "mnemonic": "sibling scout snack clump seven plunge canyon away damp penalty nominee shoot" }' localhost:5540/wallet
+   */
+  async startCoinJoin (ctx) {
+    try {
+      const mnemonic = ctx.request.body.mnemonic
+
+      const success = await this.useCases.coinjoin.startCoinJoin(mnemonic)
+
+      // KxcqrEHcjHJUJCS19TiX418Zp8LXzXqTsZaATrLDo2SskqzLq9GX
+      // bitcoincash:qr42rcereqcr4yf5yfmk4v0ypfk6s5musgkdn0nv2g
+
+      // const users = await _this.useCases.user.getAllUsers()
+
+      ctx.body = { success }
+    } catch (err) {
+      wlogger.error('Error in wallet/controller.js/getMnemonic(): ', err)
+      ctx.throw(422, err.message)
+    }
+  }
+
+  /**
    * @api {get} /wallet Get mnemonic for wallet controlled by this API
    * @apiPermission public
    * @apiName GetWallet
