@@ -28,7 +28,7 @@
     "glob": "7.1.6",
     "go-ipfs": "0.17.0",
     "ipfs": "0.58.6",
-    "ipfs-coord": "8.0.8",
+    "ipfs-coord": "/home/trout/work/psf/code/ipfs-coord",
     "ipfs-http-client": "55.0.0",
     "ipfsd-ctl": "10.0.6",
     "jsonrpc-lite": "2.2.0",

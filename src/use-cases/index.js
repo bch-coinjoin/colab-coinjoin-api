@@ -28,14 +28,17 @@ class UseCases {
       // exist and be initialized by this point in the code path. Overwrite the
       // CoinJoin pubsub handler with the handler in this library.
       // console.log('this.adapters.ipfs.ipfsCoordAdapter.ipfsCoord: ', this.adapters.ipfs.ipfsCoordAdapter.ipfsCoord)
-      this.adapters.ipfs.ipfsCoordAdapter.ipfsCoord.useCases.pubsub.coinjoinPubsubHandler = this.coinjoin.handleCoinJoinPubsub
+      // this.adapters.ipfs.ipfsCoordAdapter.ipfsCoord.useCases.pubsub.coinjoinPubsubHandler = this.coinjoin.handleCoinJoinPubsub
+
+      // Subscribe to the CoinJoin pubsub channel
+      await this.coinjoin.joinCoinJoinPubsub()
 
       console.log('Async Use Cases have been started.')
 
       return true
     } catch (err) {
       console.error('Error in use-cases/index.js/start()')
-      // console.log(err)
+      console.log(err)
       throw err
     }
   }

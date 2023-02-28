@@ -51,6 +51,9 @@ class TimerControllers {
   async announceColabCoinJoin () {
     try {
       await this.useCases.coinjoin.cjAnnounce()
+
+      // console.log('this.adapters.ipfs.ipfsCoordAdapter.ipfsCoord.useCases.pubsub.coinjoinPubsubHandler: ', this.adapters.ipfs.ipfsCoordAdapter.ipfsCoord.useCases.pubsub.coinjoinPubsubHandler)
+      // this.adapters.ipfs.ipfsCoordAdapter.ipfsCoord.useCases.pubsub.coinjoinPubsubHandler({ipfsId: 'ping'})
     } catch (err) {
       console.error('Error in timer controller announceColabCoinJoin(): ', err)
 

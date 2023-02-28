@@ -3,7 +3,9 @@
   coinjoin transaction.
 */
 
+// Local libraries
 const config = require('../../config')
+const CJPeers = require('../entities/cj-peer')
 
 // Constants
 const COINJOIN_PUBSUB_CHANNEL = config.coinjoinPubSubChan
@@ -20,9 +22,35 @@ class ColabCoinJoin {
     }
 
     // Encapsulate dependencies
+    this.cjPeers = new CJPeers()
 
     // Bind the 'this' object to subfunctions in this library.
     this.handleCoinJoinPubsub = this.handleCoinJoinPubsub.bind(this)
+  }
+
+  // Subscribes to the IPFS coinjoin pubsub channel. This overrides the default
+  // handler used by ipfs-coord, and sets the handler to this library.
+  async joinCoinJoinPubsub () {
+    try {
+      const ipfsCoord = this.adapters.ipfs.ipfsCoordAdapter.ipfsCoord
+      const thisNode = ipfsCoord.thisNode
+
+      // Unsubscribe the original pubsub subscription and handler
+      await ipfsCoord.adapters.pubsub.ipfs.ipfs.pubsub.unsubscribe(
+        COINJOIN_PUBSUB_CHANNEL,
+        ipfsCoord.useCases.pubsub.coinjoinPubsubHandler
+      )
+
+      // Create a new subscription using the event handler for this library.
+      await ipfsCoord.adapters.pubsub.subscribeToPubsubChannel(
+        COINJOIN_PUBSUB_CHANNEL,
+        this.handleCoinJoinPubsub,
+        thisNode
+      )
+    } catch (err) {
+      console.error('Error in joinCoinJoinPubsub()')
+      throw err
+    }
   }
 
   // Announces the node on the bch-coinjoin-001 pubsub channel so that other
@@ -66,6 +94,8 @@ class ColabCoinJoin {
   handleCoinJoinPubsub (announceObj) {
     try {
       console.log('handleCoinJoinPubsub() announceObj: ', announceObj)
+
+      this.cjPeers.validate(announceObj.data)
     } catch (err) {
       console.error('Error in handleCoinJoinPubsub(): ', err)
 
