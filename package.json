@@ -27,6 +27,7 @@
     "bcryptjs": "2.4.3",
     "glob": "7.1.6",
     "go-ipfs": "0.17.0",
+    "hd-cli-wallet": "../hd-cli-wallet/",
     "ipfs": "0.58.6",
     "ipfs-coord": "/home/trout/work/psf/code/ipfs-coord",
     "ipfs-http-client": "55.0.0",

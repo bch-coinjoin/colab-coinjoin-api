@@ -3,6 +3,10 @@
   coinjoin transaction.
 */
 
+// Global npm libraries
+const HdWallet = require('hd-cli-wallet')
+console.log('HdWallet: ', HdWallet)
+
 // Local libraries
 const config = require('../../config')
 const CJPeers = require('../entities/cj-peer')
@@ -23,6 +27,7 @@ class ColabCoinJoin {
 
     // Encapsulate dependencies
     this.cjPeers = new CJPeers()
+    this.hdWallet = new HdWallet()
 
     // Bind the 'this' object to subfunctions in this library.
     this.handleCoinJoinPubsub = this.handleCoinJoinPubsub.bind(this)
@@ -107,9 +112,12 @@ class ColabCoinJoin {
   // This use case is called by the POST /wallet controller where the front end
   // passes in the mnemonic for a wallet. This then kicks off a Collaborative
   // CoinJoin session to consolidate the UTXOs in that wallet.
-  startCoinJoin (mnemonic) {
+  async startCoinJoin (mnemonic) {
     try {
       console.log(`startCoinJoin() mnemonic: ${mnemonic}`)
+
+      const walletObj = await this.hdWallet.createWallet.generateWalletObj({ mnemonic })
+      console.log('walletObj: ', walletObj)
 
       return true
     } catch (err) {

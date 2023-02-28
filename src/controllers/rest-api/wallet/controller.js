@@ -44,11 +44,6 @@ class WalletRESTControllerLib {
 
       const success = await this.useCases.coinjoin.startCoinJoin(mnemonic)
 
-      // KxcqrEHcjHJUJCS19TiX418Zp8LXzXqTsZaATrLDo2SskqzLq9GX
-      // bitcoincash:qr42rcereqcr4yf5yfmk4v0ypfk6s5musgkdn0nv2g
-
-      // const users = await _this.useCases.user.getAllUsers()
-
       ctx.body = { success }
     } catch (err) {
       wlogger.error('Error in wallet/controller.js/getMnemonic(): ', err)
