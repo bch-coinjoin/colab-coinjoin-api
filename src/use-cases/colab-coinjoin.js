@@ -107,12 +107,12 @@ class ColabCoinJoin {
   // This use case is called by the POST /wallet controller where the front end
   // passes in the mnemonic for a wallet. This then kicks off a Collaborative
   // CoinJoin session to consolidate the UTXOs in that wallet.
-  startCoinJoin(mnemonic) {
+  startCoinJoin (mnemonic) {
     try {
       console.log(`startCoinJoin() mnemonic: ${mnemonic}`)
 
       return true
-    } catch(err) {
+    } catch (err) {
       console.error('Error in use-cases/colab-coinjoin.js startCoinJoin()')
       throw err
     }
