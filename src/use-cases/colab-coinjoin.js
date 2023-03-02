@@ -113,9 +113,9 @@ class ColabCoinJoin {
 
       // Try to find existing peer in the array
       const existingPeerIndex = this.peers.findIndex(x => x.ipfsId === peer.ipfsId)
-      console.log(`existingPeerIndex: `, existingPeerIndex)
+      console.log('existingPeerIndex: ', existingPeerIndex)
 
-      if(existingPeerIndex < 0) {
+      if (existingPeerIndex < 0) {
         // Add new peer to the array.
         this.peers.push(peer)
       } else {
@@ -124,7 +124,6 @@ class ColabCoinJoin {
       }
 
       console.log('this.peers: ', this.peers)
-
     } catch (err) {
       console.error('Error in handleCoinJoinPubsub(): ', err)
 
