@@ -136,12 +136,14 @@ class ColabCoinJoin {
       }
 
       console.log('this.peers: ', this.peers)
+      console.log('this.nodeState: ', this.nodeState)
 
       // If this node is actively soliciting other nodes, check
       // to see if enough of the right peers exist to initiate a CoinJoin TX.
       if (this.nodeState === 'soliciting') {
         // If the number of available peers is greater than the minimum.
-        if (this.peers.length >= MIN_PLAYERS) {
+        if (this.peers.length >= MIN_PLAYERS - 1) {
+          console.log('...looking for acceptable peers...')
           const acceptablePeers = []
 
           // Loop through all the known peers and generate an array peers that
@@ -155,10 +157,11 @@ class ColabCoinJoin {
               acceptablePeers.push(thisPeer)
             }
           }
+          console.log(`This acceptable peers found: ${JSON.stringify(acceptablePeers, null, 2)}`)
 
           // If enough acceptable peers have been discovered, then initiate
           // a CoinJoin transaction.
-          if (acceptablePeers.length >= MIN_PLAYERS) {
+          if (acceptablePeers.length >= MIN_PLAYERS - 1) {
             this.initiateColabCoinJoin(acceptablePeers)
           }
         }
@@ -214,6 +217,8 @@ class ColabCoinJoin {
   // found for this node to initiate a CoinJoin transaction.
   async initiateColabCoinJoin (peers) {
     try {
+      console.log('initiateColabCoinJoin() with these peers: ', peers)
+
       // Generate a UUID for organizing the the CoinJoin.
       const newUuid = uuidv4()
       console.log('newUuid: ', newUuid)
@@ -224,17 +229,29 @@ class ColabCoinJoin {
       for (let i = 0; i < peers.length; i++) {
         const thisPeer = peers[i]
 
-        if (thisPeer.maxSats < satsRequired) { satsRequired = thisPeer.maxSats }
+        if (thisPeer.maxSats < satsRequired) {
+          satsRequired = thisPeer.maxSats
+        }
       }
+      console.log('satsRequired: ', satsRequired)
 
       // Compile an object to send to each peer.
       const groupObj = {
+        msgType: 'colab-coinjoin-init',
         uuid: newUuid,
         requiredSats: satsRequired
       }
       console.log('groupObj: ', groupObj)
 
+      const pubsubAdapter = this.adapters.ipfs.ipfsCoordAdapter.ipfsCoord.adapters.pubsub
+      // console.log('pubsubAdapter: ', pubsubAdapter)
+
       // Send the init message to each peer.
+      for (let i = 0; i < peers.length; i++) {
+        const thisPeer = peers[i]
+
+        await pubsubAdapter.messaging.publishToPubsubChannel(thisPeer.ipfsId, groupObj)
+      }
     } catch (err) {
       console.error('Error in use-cases/colab-coinjoin.js initiateColabCoinJoin()')
       throw err
