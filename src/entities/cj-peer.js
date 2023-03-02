@@ -22,8 +22,8 @@ class CJPeer {
     if (!minPlayers || typeof minPlayers !== 'number') {
       throw new Error("Property 'minPlayers' must be a string!")
     }
-    if (!maxBch || typeof maxBch !== 'number') {
-      throw new Error("Property 'maxBch' must be a string!")
+    if (typeof maxBch !== 'number') {
+      throw new Error("Property 'maxBch' must be a number!")
     }
 
     const peerData = { ipfsId, bchAddr, slpAddr, publicKey, minPlayers, maxBch }
