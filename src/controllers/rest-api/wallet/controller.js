@@ -53,6 +53,7 @@ class WalletRESTControllerLib {
     }
   }
 
+  // DEPRECATED: This controller can be removed. It was just used for prototyping.
   /**
    * @api {get} /wallet Get mnemonic for wallet controlled by this API
    * @apiPermission public

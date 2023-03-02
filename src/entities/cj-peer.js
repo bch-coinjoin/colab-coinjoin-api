@@ -4,7 +4,7 @@
 
 class CJPeer {
   validate (inObj = {}) {
-    const { ipfsId, bchAddr, slpAddr, publicKey, minPlayers, maxBch } = inObj
+    const { ipfsId, bchAddr, slpAddr, publicKey, minPlayers, maxSats } = inObj
 
     // Input Validation
     if (!ipfsId || typeof ipfsId !== 'string') {
@@ -22,11 +22,11 @@ class CJPeer {
     if (!minPlayers || typeof minPlayers !== 'number') {
       throw new Error("Property 'minPlayers' must be a string!")
     }
-    if (typeof maxBch !== 'number') {
-      throw new Error("Property 'maxBch' must be a number!")
+    if (typeof maxSats !== 'number') {
+      throw new Error("Property 'maxSats' must be a number!")
     }
 
-    const peerData = { ipfsId, bchAddr, slpAddr, publicKey, minPlayers, maxBch }
+    const peerData = { ipfsId, bchAddr, slpAddr, publicKey, minPlayers, maxSats }
 
     return peerData
   }

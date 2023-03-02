@@ -5,7 +5,7 @@
 
 // Global npm libraries
 const HdWallet = require('hd-cli-wallet')
-// console.log('HdWallet: ', HdWallet)
+const { v4: uuidv4 } = require('uuid')
 
 // Local libraries
 const config = require('../../config')
@@ -33,9 +33,21 @@ class ColabCoinJoin {
     this.handleCoinJoinPubsub = this.handleCoinJoinPubsub.bind(this)
 
     // State
-    this.maxBchToCoinJoin = 0
+    this.maxSatsToCoinJoin = 0
     this.utxos = []
     this.peers = []
+
+    // Node state - used to track the state of this node with regard to CoinJoins
+    // The node has the following states:
+    // inactive - Passively watching the pubsub channel, but not interacting.
+    // soliciting - Broadcasting announcements on the CoinJoin pubsub channel,
+    //              looking for other peers to CoinJoin with.
+    // initiating - Organizing participants in a CoinJoin TX.
+    // joining - Joining a CoinJoin initiated by another node.
+    // tx-building - In the process of building a CoinJoin TX
+    // broadcasting - Finalizing and broadcasting CoinJoin TX
+    // canceling - canceling the CoinJoin TX and cleaning up state
+    this.nodeState = 'inactive'
   }
 
   // Subscribes to the IPFS coinjoin pubsub channel. This overrides the default
@@ -81,7 +93,7 @@ class ColabCoinJoin {
         publicKey: thisNode.publicKey,
         type: thisNode.type,
         minPlayers: MIN_PLAYERS,
-        maxBch: this.maxBchToCoinJoin
+        maxSats: this.maxSatsToCoinJoin
       }
       const msgStr = JSON.stringify(announceObj)
       console.log(`Broadcasted CoinJoin Announcement Object: ${JSON.stringify(announceObj, null, 2)}`)
@@ -124,6 +136,33 @@ class ColabCoinJoin {
       }
 
       console.log('this.peers: ', this.peers)
+
+      // If this node is actively soliciting other nodes, check
+      // to see if enough of the right peers exist to initiate a CoinJoin TX.
+      if (this.nodeState === 'soliciting') {
+        // If the number of available peers is greater than the minimum.
+        if (this.peers.length >= MIN_PLAYERS) {
+          const acceptablePeers = []
+
+          // Loop through all the known peers and generate an array peers that
+          // are acceptible for a CoinJoin TX.
+          for (let i = 0; i < this.peers.length; i++) {
+            const thisPeer = this.peers[i]
+
+            // If this peer has a max BCH equal or less than this nodes max,
+            // then it is acceptible to participate in a CoinJoin.
+            if (thisPeer.maxSats <= this.maxSatsToCoinJoin) {
+              acceptablePeers.push(thisPeer)
+            }
+          }
+
+          // If enough acceptable peers have been discovered, then initiate
+          // a CoinJoin transaction.
+          if (acceptablePeers.length >= MIN_PLAYERS) {
+            this.initiateColabCoinJoin(acceptablePeers)
+          }
+        }
+      }
     } catch (err) {
       console.error('Error in handleCoinJoinPubsub(): ', err)
 
@@ -133,8 +172,9 @@ class ColabCoinJoin {
   }
 
   // This use case is called by the POST /wallet controller where the front end
-  // passes in the UTXOs for a wallet. This then kicks off a Collaborative
-  // CoinJoin session to consolidate the UTXOs in that wallet.
+  // passes in the UTXOs for a wallet. This changes the state of the node to
+  // 'soliciting', where it begins to actively solicit other nodes to join it
+  // in a CoinJoin transaction to consolidate UTXOs.
   async startCoinJoin (inObj) {
     try {
       console.log(`startCoinJoin() input object: ${JSON.stringify(inObj, null, 2)}`)
@@ -155,12 +195,48 @@ class ColabCoinJoin {
       console.log(`totalSats: ${totalSats}`)
 
       // Update state
-      this.maxBchToCoinJoin = totalSats
+      this.maxSatsToCoinJoin = totalSats
       this.utxos = bchUtxos
+
+      // Update the state of this node, to indicate that it is actively soliciting
+      // for participants in a CoinJoin TX.
+      this.nodeState = 'soliciting'
 
       return true
     } catch (err) {
       console.error('Error in use-cases/colab-coinjoin.js startCoinJoin()')
+      throw err
+    }
+  }
+
+  // This function is called by handleCoinJoinPubsub() when this node is actively
+  // looking to join a CoinJoin tx and enough acceptable participates have been
+  // found for this node to initiate a CoinJoin transaction.
+  async initiateColabCoinJoin (peers) {
+    try {
+      // Generate a UUID for organizing the the CoinJoin.
+      const newUuid = uuidv4()
+      console.log('newUuid: ', newUuid)
+
+      // Figure out the amount of BCH each participant should contribute. This
+      // is the smallest maxSats found in the group.
+      let satsRequired = 10000000
+      for (let i = 0; i < peers.length; i++) {
+        const thisPeer = peers[i]
+
+        if (thisPeer.maxSats < satsRequired) { satsRequired = thisPeer.maxSats }
+      }
+
+      // Compile an object to send to each peer.
+      const groupObj = {
+        uuid: newUuid,
+        requiredSats: satsRequired
+      }
+      console.log('groupObj: ', groupObj)
+
+      // Send the init message to each peer.
+    } catch (err) {
+      console.error('Error in use-cases/colab-coinjoin.js initiateColabCoinJoin()')
       throw err
     }
   }
