@@ -243,14 +243,17 @@ class ColabCoinJoin {
       }
       console.log('groupObj: ', groupObj)
 
-      const pubsubAdapter = this.adapters.ipfs.ipfsCoordAdapter.ipfsCoord.adapters.pubsub
-      // console.log('pubsubAdapter: ', pubsubAdapter)
+      // Get handles on parts of ipfs-coord library.
+      const ipfsCoord = this.adapters.ipfs.ipfsCoordAdapter.ipfsCoord
+      const pubsubAdapter = ipfsCoord.adapters.pubsub
+      const thisNode = ipfsCoord.thisNode
 
       // Send the init message to each peer.
       for (let i = 0; i < peers.length; i++) {
         const thisPeer = peers[i]
 
-        await pubsubAdapter.messaging.publishToPubsubChannel(thisPeer.ipfsId, groupObj)
+        // await pubsubAdapter.messaging.publishToPubsubChannel(thisPeer.ipfsId, groupObj)
+        await pubsubAdapter.messaging.sendMsg(thisPeer.ipfsId, groupObj, thisNode)
       }
     } catch (err) {
       console.error('Error in use-cases/colab-coinjoin.js initiateColabCoinJoin()')
