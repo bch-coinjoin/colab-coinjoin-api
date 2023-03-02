@@ -247,13 +247,17 @@ class ColabCoinJoin {
       const ipfsCoord = this.adapters.ipfs.ipfsCoordAdapter.ipfsCoord
       const pubsubAdapter = ipfsCoord.adapters.pubsub
       const thisNode = ipfsCoord.thisNode
+      const encryptionAdapter = ipfsCoord.adapters.encryption
 
       // Send the init message to each peer.
       for (let i = 0; i < peers.length; i++) {
         const thisPeer = peers[i]
 
+        // Encrypt the message
+        const encryptedMsg = encryptionAdapter.encryptMsg({data: {encryptPubKey: thisPeer.publicKey}}, JSON.stringify(groupObj))
+
         // await pubsubAdapter.messaging.publishToPubsubChannel(thisPeer.ipfsId, groupObj)
-        await pubsubAdapter.messaging.sendMsg(thisPeer.ipfsId, groupObj, thisNode)
+        await pubsubAdapter.messaging.sendMsg(thisPeer.ipfsId, encryptedMsg, thisNode)
       }
     } catch (err) {
       console.error('Error in use-cases/colab-coinjoin.js initiateColabCoinJoin()')
