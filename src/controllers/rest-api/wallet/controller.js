@@ -40,9 +40,11 @@ class WalletRESTControllerLib {
    */
   async startCoinJoin (ctx) {
     try {
-      const mnemonic = ctx.request.body.mnemonic
+      const inObj = ctx.request.body
+      console.log(`startCoinJoin REST API handler, body: ${JSON.stringify(inObj, null, 2)}`)
 
-      const success = await this.useCases.coinjoin.startCoinJoin(mnemonic)
+      const success = await this.useCases.coinjoin.startCoinJoin(inObj)
+      // const success = true
 
       ctx.body = { success }
     } catch (err) {
