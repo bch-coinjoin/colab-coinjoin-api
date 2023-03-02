@@ -95,5 +95,5 @@ module.exports = {
 
   // CoinJoin Configs
   coinjoinPubSubChan: 'bch-coinjoin-001',
-  minCoinJoinParticipants: 3
+  minCoinJoinParticipants: 2
 }
