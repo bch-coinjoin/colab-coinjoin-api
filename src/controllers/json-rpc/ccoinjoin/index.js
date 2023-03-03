@@ -14,6 +14,20 @@ class CCoinJoinRPC {
     this.jsonrpc = jsonrpc
   }
 
+  // Rout 'ccoinjoin' methods to the appropriate handler.
+  async ccoinjoinRouter (rpcData) {
+    console.log('debugging: ccoinjoinRouter from ipfs-service-provider triggered')
+
+    return {
+      success: true,
+      status: 200,
+      // message: aboutStr,
+      // message: JSON.stringify(config.announceJsonLd),
+      message: JSON.stringify({ message: 'ccoinjoin initiate command received!' }),
+      endpoint: 'initiate'
+    }
+  }
+
   /**
    * @api {JSON} /about About IPFS Node
    * @apiPermission public
@@ -32,8 +46,8 @@ class CCoinJoinRPC {
   // This is the top-level router for this library.
   // This is a bit different than other router libraries, because there is
   // only one response, which is a string about this node.
-  async initiateRouter (rpcData) {
-    console.log('debugging: aboutRouter from ipfs-service-provider triggered')
+  async initController (rpcData) {
+    console.log('debugging: ccoinjoinRouter from ipfs-service-provider triggered')
 
     return {
       success: true,
