@@ -10,6 +10,7 @@ const { wlogger } = require('../../adapters/wlogger')
 // const UserController = require('./users')
 const AuthController = require('./auth')
 const AboutController = require('./about')
+const CCoinJoinController = require('./ccoinjoin')
 
 let _this
 
@@ -35,6 +36,7 @@ class JSONRPC {
     // this.userController = new UserController(localConfig)
     this.authController = new AuthController(localConfig)
     this.aboutController = new AboutController()
+    this.ccoinjoinController = new CCoinJoinController()
 
     // Cache to store IDs of processed JSON RPC commands. Used to prevent
     // duplicate processing.
@@ -109,6 +111,9 @@ class JSONRPC {
           break
         case 'about':
           retObj = await _this.aboutController.aboutRouter(parsedData)
+          break
+        case 'ccoinjoin':
+          retObj = await _this.ccoinjoinController.ccoinjoinRouter(parsedData)
       }
 
       // console.log('retObj: ', retObj)

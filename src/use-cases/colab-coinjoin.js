@@ -6,6 +6,7 @@
 // Global npm libraries
 const HdWallet = require('hd-cli-wallet')
 const { v4: uuidv4 } = require('uuid')
+const jsonrpc = require('jsonrpc-lite')
 
 // Local libraries
 const config = require('../../config')
@@ -28,6 +29,7 @@ class ColabCoinJoin {
     // Encapsulate dependencies
     this.cjPeers = new CJPeers()
     this.hdWallet = new HdWallet()
+    this.jsonrpc = jsonrpc
 
     // Bind the 'this' object to subfunctions in this library.
     this.handleCoinJoinPubsub = this.handleCoinJoinPubsub.bind(this)
@@ -36,6 +38,7 @@ class ColabCoinJoin {
     this.maxSatsToCoinJoin = 0
     this.utxos = []
     this.peers = []
+    this.rpcDataQueue = [] // A queue for holding RPC data that has arrived.
 
     // Node state - used to track the state of this node with regard to CoinJoins
     // The node has the following states:
@@ -236,33 +239,119 @@ class ColabCoinJoin {
       console.log('satsRequired: ', satsRequired)
 
       // Compile an object to send to each peer.
-      const groupObj = {
+      const rpcData = {
         msgType: 'colab-coinjoin-init',
         uuid: newUuid,
-        requiredSats: satsRequired
+        requiredSats: satsRequired,
+        endpoint: 'initiate'
       }
-      console.log('groupObj: ', groupObj)
+      console.log('rpcData: ', rpcData)
+
+      const rpcId = uuidv4()
+
+      // Generate a JSON RPC command.
+      const cmd = this.jsonrpc.request(rpcId, 'ccoinjoin', rpcData)
+      const cmdStr = JSON.stringify(cmd)
+      console.log('cmdStr: ', cmdStr)
 
       // Get handles on parts of ipfs-coord library.
       const ipfsCoord = this.adapters.ipfs.ipfsCoordAdapter.ipfsCoord
-      const pubsubAdapter = ipfsCoord.adapters.pubsub
+      // const pubsubAdapter = ipfsCoord.adapters.pubsub
       const thisNode = ipfsCoord.thisNode
-      const encryptionAdapter = ipfsCoord.adapters.encryption
+      // const encryptionAdapter = ipfsCoord.adapters.encryption
 
       // Send the init message to each peer.
       for (let i = 0; i < peers.length; i++) {
         const thisPeer = peers[i]
 
+        try {
+          // Send the RPC command to selected wallet service.
+          await ipfsCoord.useCases.peer.sendPrivateMessage(
+            thisPeer.ipfsId,
+            cmdStr,
+            thisNode
+          )
+        } catch (err) {
+          console.log(`Could not find data for peer ${thisPeer.ipfsId}, skipping.`)
+          break
+
+          // Dev Note: The idea here is that if there is no connection data to send
+          // private messages to a peer in the group, then abort the CoinJoin
+          // init attempt. I think that's the best strategy for now.
+        }
+
+        // Wait for data to come back from the wallet service.
+        const data = await this.waitForRPCResponse(rpcId)
+        console.log('returned rpc data: ', data)
+
         // Encrypt the message
-        const encryptedMsg = encryptionAdapter.encryptMsg({data: {encryptPubKey: thisPeer.publicKey}}, JSON.stringify(groupObj))
+        // const encryptedMsg = encryptionAdapter.encryptMsg({ data: { encryptPubKey: thisPeer.publicKey } }, JSON.stringify(groupObj))
 
         // await pubsubAdapter.messaging.publishToPubsubChannel(thisPeer.ipfsId, groupObj)
-        await pubsubAdapter.messaging.sendMsg(thisPeer.ipfsId, encryptedMsg, thisNode)
+        // await pubsubAdapter.messaging.sendMsg(thisPeer.ipfsId, encryptedMsg, thisNode)
       }
     } catch (err) {
       console.error('Error in use-cases/colab-coinjoin.js initiateColabCoinJoin()')
       throw err
     }
+  }
+
+  // Returns a promise that resolves to data when the RPC response is recieved.
+  async waitForRPCResponse (rpcId) {
+    try {
+      // Initialize variables for tracking the return data.
+      let dataFound = false
+      let cnt = 0
+
+      // Default return value, if the remote computer does not respond in time.
+      let data = {
+        success: false,
+        message: 'request timed out',
+        data: ''
+      }
+
+      // Loop that waits for a response from the service provider.
+      do {
+        // console.log(`this.rpcDataQueue.length: ${this.rpcDataQueue.length}`)
+        for (let i = 0; i < this.rpcDataQueue.length; i++) {
+          const rawData = this.rpcDataQueue[i]
+          // console.log(`rawData: ${JSON.stringify(rawData, null, 2)}`)
+
+          if (rawData.payload.id === rpcId) {
+            dataFound = true
+            // console.log('data was found in the queue')
+
+            // console.log(
+            //   `rawData.payload: ${JSON.stringify(rawData.payload, null, 2)}`
+            // )
+            data = rawData.payload.result.value
+
+            // Remove the data from the queue
+            this.rpcDataQueue.splice(i, 1)
+
+            break
+          }
+        }
+
+        // Wait between loops.
+        // await this.sleep(1000)
+        await this.sleep(2000)
+
+        cnt++
+
+        // Exit if data was returned, or the window for a response expires.
+      } while (!dataFound && cnt < 10)
+      // console.log(`dataFound: ${dataFound}, cnt: ${cnt}`)
+
+      return data
+    } catch (err) {
+      console.error('Error in waitForRPCResponse()')
+      throw err
+    }
+  }
+
+  sleep (ms) {
+    return new Promise(resolve => setTimeout(resolve, ms))
   }
 }
 
