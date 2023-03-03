@@ -353,6 +353,17 @@ class ColabCoinJoin {
   sleep (ms) {
     return new Promise(resolve => setTimeout(resolve, ms))
   }
+
+  async handleInitRequest (rpcData) {
+    try {
+      console.log(`handleInitRequest() started with this rpcData: ${JSON.stringify(rpcData, null, 2)}`)
+
+      return { success: true }
+    } catch (err) {
+      console.error('Error in use-cases/colab-coinjoin.js/handleInitRequest(): ', err)
+      return { success: false }
+    }
+  }
 }
 
 module.exports = ColabCoinJoin

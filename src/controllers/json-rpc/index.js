@@ -36,7 +36,7 @@ class JSONRPC {
     // this.userController = new UserController(localConfig)
     this.authController = new AuthController(localConfig)
     this.aboutController = new AboutController()
-    this.ccoinjoinController = new CCoinJoinController()
+    this.ccoinjoinController = new CCoinJoinController(localConfig)
 
     // Cache to store IDs of processed JSON RPC commands. Used to prevent
     // duplicate processing.

@@ -7,54 +7,85 @@ const jsonrpc = require('jsonrpc-lite')
 
 // Local libraries
 // const config = require('../../../../config')
+const RateLimit = require('../rate-limit')
 
 class CCoinJoinRPC {
   constructor (localConfig) {
+    // Dependency Injection.
+    this.adapters = localConfig.adapters
+    if (!this.adapters) {
+      throw new Error(
+        'Instance of Adapters library required when instantiating CCoinJoin JSON RPC Controller.'
+      )
+    }
+    this.useCases = localConfig.useCases
+    if (!this.useCases) {
+      throw new Error(
+        'Instance of Use Cases library required when instantiating CCoinJoin JSON RPC Controller.'
+      )
+    }
+
     // Encapsulate dependencies
     this.jsonrpc = jsonrpc
+    this.rateLimit = new RateLimit()
   }
 
   // Rout 'ccoinjoin' methods to the appropriate handler.
   async ccoinjoinRouter (rpcData) {
+    let endpoint = 'unknown'
+
     console.log('debugging: ccoinjoinRouter from ipfs-service-provider triggered')
 
-    return {
-      success: true,
-      status: 200,
-      // message: aboutStr,
-      // message: JSON.stringify(config.announceJsonLd),
-      message: JSON.stringify({ message: 'ccoinjoin initiate command received!' }),
-      endpoint: 'initiate'
+    try {
+      // console.log('userRouter rpcData: ', rpcData)
+
+      endpoint = rpcData.payload.params.endpoint
+
+      // Route the call based on the value of the method property.
+      switch (endpoint) {
+        case 'initiate':
+          await this.rateLimit.limiter(rpcData.from)
+          return await this.initController(rpcData)
+      }
+    } catch (err) {
+      console.error('Error in CCoinJoinRPC/ccoinjoinRouter(): ', err)
+      // Do not throw an error. This is a top-level handler.
+
+      return {
+        success: false,
+        status: err.status || 500,
+        message: err.message,
+        endpoint
+      }
     }
   }
 
   /**
-   * @api {JSON} /about About IPFS Node
+   * @api {JSON} /initiate Try to initiate a CoinJoin TX
    * @apiPermission public
-   * @apiName About
-   * @apiGroup JSON About
+   * @apiName Initiate
+   * @apiGroup JSON CCoinJoin
    *
    * @apiExample Example usage:
-   * {"jsonrpc":"2.0","id":"555","method":"about"}
+   * {"jsonrpc":"2.0","id":"555","method":"ccoinjoin","params":{ "endpoint": "initiate"}}
    *
    * @apiDescription
-   * This endpoint can be customized so that users can retrieve information about
-   * your IPFS node and Service Provider application. This is a great place to
-   * put a website URL, an IPFS hash, an other basic information.
+   * This endpoint is called by another node to initiate a CoinJoin TX with
+   * this peer.
    */
-
-  // This is the top-level router for this library.
-  // This is a bit different than other router libraries, because there is
-  // only one response, which is a string about this node.
   async initController (rpcData) {
     console.log('debugging: ccoinjoinRouter from ipfs-service-provider triggered')
+
+    const message = await this.useCases.coinjoin.handleInitRequest(rpcData)
+    console.log('message from handleInitRequest(): ', message)
 
     return {
       success: true,
       status: 200,
       // message: aboutStr,
       // message: JSON.stringify(config.announceJsonLd),
-      message: JSON.stringify({ message: 'ccoinjoin initiate command received!' }),
+      // message: JSON.stringify({ message: 'ccoinjoin initiate command received!' }),
+      message,
       endpoint: 'initiate'
     }
   }
