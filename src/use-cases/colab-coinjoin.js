@@ -39,6 +39,7 @@ class ColabCoinJoin {
     this.utxos = []
     this.peers = []
     this.rpcDataQueue = [] // A queue for holding RPC data that has arrived.
+    this.mnemoinc = ''
 
     // Node state - used to track the state of this node with regard to CoinJoins
     // The node has the following states:
@@ -185,7 +186,11 @@ class ColabCoinJoin {
     try {
       console.log(`startCoinJoin() input object: ${JSON.stringify(inObj, null, 2)}`)
 
-      const { bchUtxos } = inObj
+      const { bchUtxos, mnemonic } = inObj
+
+      // Save the mnemonic to the state of this library, so that it can be used
+      // in downstream functions of the CoinJoin workflow
+      this.mnemonic = mnemonic
 
       // Count the total number of sats in all UTXOs
       let totalSats = 0
@@ -357,6 +362,15 @@ class ColabCoinJoin {
   async handleInitRequest (rpcData) {
     try {
       console.log(`handleInitRequest() started with this rpcData: ${JSON.stringify(rpcData, null, 2)}`)
+
+      const {msgType, uuid, requiredSats, endpoint} = rpcData.payload.params
+      console.log(`msgType: ${msgType}`)
+      console.log(`uuid: ${uuid}`)
+      console.log(`requiredSats: ${requiredSats}`)
+      console.log(`endpoint: ${endpoint}`)
+      // UUID is the CoinJoin UUID that is used in the response to the initator.
+
+      console.log('mnemonic: ', this.mnemonic)
 
       return { success: true }
     } catch (err) {
