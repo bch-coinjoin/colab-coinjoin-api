@@ -363,7 +363,7 @@ class ColabCoinJoin {
     try {
       console.log(`handleInitRequest() started with this rpcData: ${JSON.stringify(rpcData, null, 2)}`)
 
-      const {msgType, uuid, requiredSats, endpoint} = rpcData.payload.params
+      const { msgType, uuid, requiredSats, endpoint } = rpcData.payload.params
       console.log(`msgType: ${msgType}`)
       console.log(`uuid: ${uuid}`)
       console.log(`requiredSats: ${requiredSats}`)
