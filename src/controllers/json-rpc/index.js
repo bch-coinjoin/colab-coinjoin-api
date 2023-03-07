@@ -76,7 +76,7 @@ class JSONRPC {
       if (alreadyProcessed) {
         return false
       } else {
-        // console.log(`parsedData: ${JSON.stringify(parsedData, null, 2)}`)
+        console.log(`parsedData: ${JSON.stringify(parsedData, null, 2)}`)
 
         // This node will regularly ping known circuit relays with an /about
         // JSON RPC call. These will be handled by ipfs-coord, but will percolate
