@@ -28,7 +28,7 @@ class ColabCoinJoin {
 
     // Encapsulate dependencies
     this.cjPeers = new CJPeers()
-    this.hdWallet = new HdWallet()
+    this.hdWallet = new HdWallet({restURL: 'https://bch-consumer-anacortes-wa-usa.fullstackcash.nl'})
     this.jsonrpc = jsonrpc
 
     // Bind the 'this' object to subfunctions in this library.
@@ -345,7 +345,7 @@ class ColabCoinJoin {
         cnt++
 
         // Exit if data was returned, or the window for a response expires.
-      } while (!dataFound && cnt < 10)
+      } while (!dataFound && cnt < 60) // 60 * 2 seconds = 2 minutes
       // console.log(`dataFound: ${dataFound}, cnt: ${cnt}`)
 
       return data
@@ -372,7 +372,44 @@ class ColabCoinJoin {
 
       console.log('mnemonic: ', this.mnemonic)
 
-      return { success: true }
+      // Generate the wallet object
+      let walletObj = await this.hdWallet.createWallet.generateWalletObj({ mnemonic: this.mnemonic })
+
+      walletObj = await this.hdWallet.updateBalance.updateWallet(walletObj)
+      console.log('walletUtxoData: ', JSON.stringify(walletObj, null, 2))
+
+      const coinjoinUtxos = this.hdWallet.utxos.selectCoinJoinUtxos(requiredSats, walletObj.bchUtxos)
+      console.log('coinjoinUtxos: ', JSON.stringify(coinjoinUtxos, null, 2))
+
+      // Sum the total sats from all selected UTXOs
+      let totalSats = 0
+      coinjoinUtxos.map(x => { totalSats += x.satoshis; return false })
+
+      // If the UTXOs do not total up to required amount, reject the petition
+      // because this node is not able to participate.
+      if(totalSats < requiredSats) {
+        return { success: false }
+      }
+
+      // Generate new output address
+      let outputAddr = await this.hdWallet.util.generateAddress(walletObj, walletObj.nextAddress, 1)
+      outputAddr = outputAddr[0]
+      console.log('outputAddr: ', outputAddr)
+
+      // Generate a change address
+      let changeAddr = await this.hdWallet.util.generateAddress(walletObj, walletObj.nextAddress+1, 1)
+      changeAddr = changeAddr[0]
+      console.log('changeAddr: ', changeAddr)
+
+      // Compile an output object to return to the peer initiating the CoinJoin
+      const outObj = {
+        coinjoinUtxos,
+        outputAddr,
+        changeAddr,
+        success: true
+      }
+
+      return outObj
     } catch (err) {
       console.error('Error in use-cases/colab-coinjoin.js/handleInitRequest(): ', err)
       return { success: false }

@@ -28,6 +28,9 @@ class CCoinJoinRPC {
     // Encapsulate dependencies
     this.jsonrpc = jsonrpc
     this.rateLimit = new RateLimit()
+
+    // State
+    this.coinjoinStarted = false
   }
 
   // Rout 'ccoinjoin' methods to the appropriate handler.
@@ -76,8 +79,19 @@ class CCoinJoinRPC {
   async initController (rpcData) {
     console.log('debugging: ccoinjoinRouter from ipfs-service-provider triggered')
 
-    const message = await this.useCases.coinjoin.handleInitRequest(rpcData)
-    console.log('message from handleInitRequest(): ', message)
+    let message = 'coinjoin already underway'
+
+    // Temp code. Skip the use-case calls if there already been a call that is
+    // being serviced.
+    if(!this.coinjoinStarted) {
+      this.coinjoinStarted = true
+
+      // Handle the initiatiation request by submitting UTXOs to be coinjoined.
+      message = await this.useCases.coinjoin.handleInitRequest(rpcData)
+      console.log('message from handleInitRequest(): ', message)
+
+      this.coinjoinStarted = false
+    }
 
     return {
       success: true,
