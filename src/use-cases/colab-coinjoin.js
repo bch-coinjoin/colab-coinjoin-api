@@ -334,6 +334,14 @@ class ColabCoinJoin {
   async buildCoinJoinTx (inObj = {}) {
     try {
       console.log(`buildCoinJoinTx() inObj: ${JSON.stringify(inObj, null, 2)}`)
+
+      // Get the state for this wallet. This wallet state is set in the
+      // startCoinJoin() function.
+      const totalSats = this.maxSatsToCoinJoin
+      const myUtxos = this.utxos
+      console.log('totalSats: ', totalSats)
+      console.log(`myUtxos: ${JSON.stringify(myUtxos, null, 2)}`)
+
     } catch (err) {
       console.error('Error in buildCoinJoinTx()')
       throw err
