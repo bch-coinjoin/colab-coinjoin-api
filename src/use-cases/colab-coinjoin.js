@@ -344,7 +344,7 @@ class ColabCoinJoin {
       console.log(`myUtxos: ${JSON.stringify(myUtxos, null, 2)}`)
 
       // Generate the wallet object for this node.
-      let walletObj = await this.hdWallet.createWallet.generateWalletObj({ mnemonic: this.mnemonic })
+      const walletObj = await this.hdWallet.createWallet.generateWalletObj({ mnemonic: this.mnemonic })
 
       // Generate an output and change address for this node.
       // TODO: the nextAddress is not reliably tracked. Some way of accurately tracking it is required.
