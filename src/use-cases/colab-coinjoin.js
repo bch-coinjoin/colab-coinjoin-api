@@ -41,6 +41,7 @@ class ColabCoinJoin {
     this.peers = []
     this.rpcDataQueue = [] // A queue for holding RPC data that has arrived.
     this.mnemoinc = ''
+    this.walletObj = {} // Wallet object for this node. Populated when a peer
 
     // Node state - used to track the state of this node with regard to CoinJoins
     // The node has the following states:
@@ -341,6 +342,23 @@ class ColabCoinJoin {
       const myUtxos = this.utxos
       console.log('totalSats: ', totalSats)
       console.log(`myUtxos: ${JSON.stringify(myUtxos, null, 2)}`)
+
+      // Generate the wallet object for this node.
+      let walletObj = await this.hdWallet.createWallet.generateWalletObj({ mnemonic: this.mnemonic })
+
+      // Generate an output and change address for this node.
+      // TODO: the nextAddress is not reliably tracked. Some way of accurately tracking it is required.
+      let outputAddr = await this.hdWallet.util.generateAddress(walletObj, walletObj.nextAddress, 1)
+      outputAddr = outputAddr[0]
+      console.log('this nodes outputAddr: ', outputAddr)
+
+      // Generate a change address
+      let changeAddr = await this.hdWallet.util.generateAddress(walletObj, walletObj.nextAddress + 1, 1)
+      changeAddr = changeAddr[0]
+      console.log('this nodes changeAddr: ', changeAddr)
+
+      // TODO: Create an adapter library based on the CoinJoin examples. It takes
+      // the above data and generates an unsigned CoinJoin TX.
     } catch (err) {
       console.error('Error in buildCoinJoinTx()')
       throw err
@@ -422,6 +440,8 @@ class ColabCoinJoin {
     return new Promise(resolve => setTimeout(resolve, ms))
   }
 
+  // This is a JSON RPC handler that is called when another peer tries to initiate
+  // a CoinJoin transaction with this node.
   async handleInitRequest (rpcData) {
     try {
       console.log(`handleInitRequest() started with this rpcData: ${JSON.stringify(rpcData, null, 2)}`)
