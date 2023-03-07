@@ -87,20 +87,20 @@ class JSONRPC {
         ) {
           return false
         }
-console.log('ping10')
+        console.log('ping10')
         // Log the incoming JSON RPC command.
         wlogger.info(
           `JSON RPC received from ${from}, ID: ${parsedData.payload.id}, type: ${parsedData.type}, method: ${parsedData.payload.method}`
         )
       }
-console.log('ping20')
+      console.log('ping20')
       // Added the property "from" to the parsedData object;
       // necessary for calculating rate limits (based on the IPFS ID).
       parsedData.from = from
-console.log('ping30')
+      console.log('ping30')
       // Default return string
       let retObj = _this.defaultResponse()
-console.log('ping40')
+      console.log('ping40')
       // Forward data on to coinjoin use-case if this is the response of a CoinJoin query.
       try {
         console.log('JSON RPC parsedData.payload.result.method: ', parsedData.payload.result.method)
@@ -112,7 +112,7 @@ console.log('ping40')
         console.log('ping50')
         /* exit quietly */
       }
-console.log('ping60')
+      console.log('ping60')
       // Route the command to the appropriate route handler.
       switch (parsedData.payload.method) {
         case 'users':
