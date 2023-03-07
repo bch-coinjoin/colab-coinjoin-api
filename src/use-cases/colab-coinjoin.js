@@ -33,6 +33,7 @@ class ColabCoinJoin {
 
     // Bind the 'this' object to subfunctions in this library.
     this.handleCoinJoinPubsub = this.handleCoinJoinPubsub.bind(this)
+    this.rpcHandler = this.rpcHandler.bind(this)
 
     // State
     this.maxSatsToCoinJoin = 0
@@ -285,9 +286,11 @@ class ColabCoinJoin {
           // init attempt. I think that's the best strategy for now.
         }
 
+        console.log('Waiting for rpc data....')
+
         // Wait for data to come back from the wallet service.
         const data = await this.waitForRPCResponse(rpcId)
-        console.log('returned rpc data: ', data)
+        console.log('...returned rpc data: ', data)
 
         // Encrypt the message
         // const encryptedMsg = encryptionAdapter.encryptMsg({ data: { encryptPubKey: thisPeer.publicKey } }, JSON.stringify(groupObj))
@@ -352,6 +355,23 @@ class ColabCoinJoin {
     } catch (err) {
       console.error('Error in waitForRPCResponse()')
       throw err
+    }
+  }
+
+  // This handler is triggered when RPC data comes in over IPFS.
+  // Handle RPC input, and add the response to the RPC queue.
+  // Once in the queue, it will get processed by waitForRPCResponse()
+  rpcHandler (data) {
+    try {
+      // Convert string input into an object.
+      // const jsonData = JSON.parse(data)
+
+      console.log(`JSON RPC response for ID ${data.payload.id} received.`)
+
+      this.rpcDataQueue.push(data)
+    } catch (err) {
+      console.error('Error in rest-api.js/rpcHandler(): ', err)
+      // Do not throw error. This is a top-level function.
     }
   }
 

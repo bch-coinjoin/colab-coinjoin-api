@@ -101,6 +101,16 @@ class JSONRPC {
       // Default return string
       let retObj = _this.defaultResponse()
 
+      // Forward data on to coinjoin use-case if this is the response of a CoinJoin query.
+      try {
+        if (parsedData.payload.result.method === 'ccoinjoin') {
+          console.log('routing to CoinJoin adapter')
+          retObj = await _this.useCases.coinjoin.rpcHandler(parsedData)
+        }
+      } catch (err) {
+        /* exit quietly */
+      }
+
       // Route the command to the appropriate route handler.
       switch (parsedData.payload.method) {
         case 'users':
