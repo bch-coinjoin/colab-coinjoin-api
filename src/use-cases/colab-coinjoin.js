@@ -28,7 +28,7 @@ class ColabCoinJoin {
 
     // Encapsulate dependencies
     this.cjPeers = new CJPeers()
-    this.hdWallet = new HdWallet({restURL: 'https://bch-consumer-anacortes-wa-usa.fullstackcash.nl'})
+    this.hdWallet = new HdWallet({ restURL: 'https://bch-consumer-anacortes-wa-usa.fullstackcash.nl' })
     this.jsonrpc = jsonrpc
 
     // Bind the 'this' object to subfunctions in this library.
@@ -387,7 +387,7 @@ class ColabCoinJoin {
 
       // If the UTXOs do not total up to required amount, reject the petition
       // because this node is not able to participate.
-      if(totalSats < requiredSats) {
+      if (totalSats < requiredSats) {
         return { success: false }
       }
 
@@ -397,7 +397,7 @@ class ColabCoinJoin {
       console.log('outputAddr: ', outputAddr)
 
       // Generate a change address
-      let changeAddr = await this.hdWallet.util.generateAddress(walletObj, walletObj.nextAddress+1, 1)
+      let changeAddr = await this.hdWallet.util.generateAddress(walletObj, walletObj.nextAddress + 1, 1)
       changeAddr = changeAddr[0]
       console.log('changeAddr: ', changeAddr)
 

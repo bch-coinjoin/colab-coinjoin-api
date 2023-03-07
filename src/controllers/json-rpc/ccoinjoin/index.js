@@ -83,7 +83,7 @@ class CCoinJoinRPC {
 
     // Temp code. Skip the use-case calls if there already been a call that is
     // being serviced.
-    if(!this.coinjoinStarted) {
+    if (!this.coinjoinStarted) {
       this.coinjoinStarted = true
 
       // Handle the initiatiation request by submitting UTXOs to be coinjoined.
