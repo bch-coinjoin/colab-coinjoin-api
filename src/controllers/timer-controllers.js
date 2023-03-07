@@ -39,7 +39,8 @@ class TimerControllers {
     // when the server starts.
     // this.optimizeWalletHandle = setInterval(this.exampleTimerFunc, 30000)
 
-    this.announceTimerHandle = setInterval(this.announceColabCoinJoin, 30000)
+    this.announceTimerHandle = setInterval(this.announceColabCoinJoin, 2*60000)
+    setTimeout(this.announceColabCoinJoin, 8000)
 
     return true
   }
