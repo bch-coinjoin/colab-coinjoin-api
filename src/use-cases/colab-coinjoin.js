@@ -341,7 +341,6 @@ class ColabCoinJoin {
       const myUtxos = this.utxos
       console.log('totalSats: ', totalSats)
       console.log(`myUtxos: ${JSON.stringify(myUtxos, null, 2)}`)
-
     } catch (err) {
       console.error('Error in buildCoinJoinTx()')
       throw err
