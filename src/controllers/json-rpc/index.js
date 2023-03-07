@@ -83,7 +83,8 @@ class JSONRPC {
         // up to this library. Ignore these messages.
         if (
           parsedData.type.includes('success') &&
-          parsedData.payload.method === undefined
+          parsedData.payload.method === undefined &&
+          parsedData.payload.result.method !== 'ccoinjoin'
         ) {
           return false
         }
