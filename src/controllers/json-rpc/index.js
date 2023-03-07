@@ -76,7 +76,7 @@ class JSONRPC {
       if (alreadyProcessed) {
         return false
       } else {
-        console.log(`parsedData: ${JSON.stringify(parsedData, null, 2)}`)
+        // console.log(`parsedData: ${JSON.stringify(parsedData, null, 2)}`)
 
         // This node will regularly ping known circuit relays with an /about
         // JSON RPC call. These will be handled by ipfs-coord, but will percolate
@@ -88,20 +88,20 @@ class JSONRPC {
         ) {
           return false
         }
-        console.log('ping10')
+
         // Log the incoming JSON RPC command.
         wlogger.info(
           `JSON RPC received from ${from}, ID: ${parsedData.payload.id}, type: ${parsedData.type}, method: ${parsedData.payload.method}`
         )
       }
-      console.log('ping20')
+
       // Added the property "from" to the parsedData object;
       // necessary for calculating rate limits (based on the IPFS ID).
       parsedData.from = from
-      console.log('ping30')
+
       // Default return string
       let retObj = _this.defaultResponse()
-      console.log('ping40')
+
       // Forward data on to coinjoin use-case if this is the response of a CoinJoin query.
       try {
         console.log('JSON RPC parsedData.payload.result.method: ', parsedData.payload.result.method)
@@ -110,10 +110,9 @@ class JSONRPC {
           retObj = await _this.useCases.coinjoin.rpcHandler(parsedData)
         }
       } catch (err) {
-        console.log('ping50')
         /* exit quietly */
       }
-      console.log('ping60')
+
       // Route the command to the appropriate route handler.
       switch (parsedData.payload.method) {
         case 'users':

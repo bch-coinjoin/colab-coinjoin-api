@@ -292,11 +292,19 @@ class ColabCoinJoin {
         const data = await this.waitForRPCResponse(rpcId)
         console.log('...returned rpc data: ', data)
 
-        // Encrypt the message
-        // const encryptedMsg = encryptionAdapter.encryptMsg({ data: { encryptPubKey: thisPeer.publicKey } }, JSON.stringify(groupObj))
+        const message = data.message
 
-        // await pubsubAdapter.messaging.publishToPubsubChannel(thisPeer.ipfsId, groupObj)
-        // await pubsubAdapter.messaging.sendMsg(thisPeer.ipfsId, encryptedMsg, thisNode)
+        // Exit if a peer is already occupied in another coinjoin session.
+        if (typeof (message) === 'string' && message.includes('already underway')) {
+          console.log('Peer is already in a CoinJoin. Skipping.')
+          return false
+        }
+
+        // Get the data from the peer needed to include them in the CoinJoin.
+        // const { coinjoinUtxos, outputAddr, changeAddr } = message
+
+        // Add up the total sats in the peers UTXOs, make sure they meet or
+        // exceed the minimum sats required.
       }
     } catch (err) {
       console.error('Error in use-cases/colab-coinjoin.js initiateColabCoinJoin()')
