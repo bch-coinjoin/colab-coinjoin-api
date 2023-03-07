@@ -266,6 +266,8 @@ class ColabCoinJoin {
       const thisNode = ipfsCoord.thisNode
       // const encryptionAdapter = ipfsCoord.adapters.encryption
 
+      const peerCoinJoinData = []
+
       // Send the init message to each peer.
       for (let i = 0; i < peers.length; i++) {
         const thisPeer = peers[i]
@@ -301,13 +303,39 @@ class ColabCoinJoin {
         }
 
         // Get the data from the peer needed to include them in the CoinJoin.
-        // const { coinjoinUtxos, outputAddr, changeAddr } = message
+        const { coinjoinUtxos, outputAddr, changeAddr } = message
 
         // Add up the total sats in the peers UTXOs, make sure they meet or
         // exceed the minimum sats required.
+        let totalSats = 0
+        coinjoinUtxos.map(x => { totalSats += x.value; return false })
+        if (totalSats < satsRequired) {
+          throw new Error(`Peer ${thisPeer.ipfsId} returned UTXOs that total to ${totalSats} sats, which is less than the required ${satsRequired} sats`)
+        }
+
+        // Add it to the peer data we already have.
+        thisPeer.coinjoinUtxos = coinjoinUtxos
+        thisPeer.outputAddr = outputAddr
+        thisPeer.changeAddr = changeAddr
+
+        peerCoinJoinData.push(thisPeer)
       }
+
+      // console.log('peerCoinJoinData: ', JSON.stringify(peerCoinJoinData, null, 2))
+
+      await this.buildCoinJoinTx({ peerCoinJoinData })
     } catch (err) {
       console.error('Error in use-cases/colab-coinjoin.js initiateColabCoinJoin()')
+      throw err
+    }
+  }
+
+  // This function compiles all peer data into an unsigned CoinJoin transaction.
+  async buildCoinJoinTx (inObj = {}) {
+    try {
+      console.log(`buildCoinJoinTx() inObj: ${JSON.stringify(inObj, null, 2)}`)
+    } catch (err) {
+      console.error('Error in buildCoinJoinTx()')
       throw err
     }
   }
