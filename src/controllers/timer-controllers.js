@@ -40,7 +40,7 @@ class TimerControllers {
     // this.optimizeWalletHandle = setInterval(this.exampleTimerFunc, 30000)
 
     this.announceTimerHandle = setInterval(this.announceColabCoinJoin, 2 * 60000)
-    setTimeout(this.announceColabCoinJoin, 8000)
+    setTimeout(this.announceColabCoinJoin, 15000)
 
     return true
   }

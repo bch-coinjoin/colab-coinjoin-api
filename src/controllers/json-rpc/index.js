@@ -103,6 +103,7 @@ class JSONRPC {
 
       // Forward data on to coinjoin use-case if this is the response of a CoinJoin query.
       try {
+        console.log('JSON RPC parsedData.payload.result.method: ', parsedData.payload.result.method)
         if (parsedData.payload.result.method === 'ccoinjoin') {
           console.log('routing to CoinJoin adapter')
           retObj = await _this.useCases.coinjoin.rpcHandler(parsedData)
