@@ -49,6 +49,9 @@ class CCoinJoinRPC {
         case 'initiate':
           await this.rateLimit.limiter(rpcData.from)
           return await this.initController(rpcData)
+        case 'sign':
+          await this.rateLimit.limiter(rpcData.from)
+          return await this.signTx(rpcData)
       }
     } catch (err) {
       console.error('Error in CCoinJoinRPC/ccoinjoinRouter(): ', err)
@@ -101,6 +104,39 @@ class CCoinJoinRPC {
       // message: JSON.stringify({ message: 'ccoinjoin initiate command received!' }),
       message,
       endpoint: 'initiate'
+    }
+  }
+
+  /**
+   * @api {JSON} /sign Sign inputs for a CoinJoin TX
+   * @apiPermission public
+   * @apiName Sign
+   * @apiGroup JSON CCoinJoin
+   *
+   * @apiExample Example usage:
+   * {"jsonrpc":"2.0","id":"555","method":"ccoinjoin","params":{ "endpoint": "sign"}}
+   *
+   * @apiDescription
+   * This endpoint is called by the organizing peer. It passes an unsigned CoinJoin
+   * tx to each peer for them to sign their inputs and outputs. The partially
+   * signed TX is then passed back so that it can be compiled into a fully-signed
+   * TX and broadcast to the network.
+   */
+  async signTx (rpcData) {
+    let message = 'Could not sign Tx'
+
+    // Analyize the TX and sign this peers inputs and outputs
+    message = await this.useCases.coinjoin.signTx(rpcData)
+    console.log('message from signTx(): ', message)
+
+    return {
+      success: true,
+      status: 200,
+      // message: aboutStr,
+      // message: JSON.stringify(config.announceJsonLd),
+      // message: JSON.stringify({ message: 'ccoinjoin initiate command received!' }),
+      message,
+      endpoint: 'sign'
     }
   }
 }

@@ -169,9 +169,14 @@ class ColabCoinJoin {
           // a CoinJoin transaction.
           if (acceptablePeers.length >= MIN_PLAYERS - 1) {
             // Coordinate with peers to generate an unsigned CoinJoin TX
-            const hex = await this.initiateColabCoinJoin(acceptablePeers)
+            const { hex, cjUuid } = await this.initiateColabCoinJoin(acceptablePeers)
             console.log('Ready to pass unsigned CoinJoin TX to each participant to collect signatures.')
             console.log('hex: ', hex)
+
+            const unsignedHex = hex
+            const cjPeers = acceptablePeers
+            const signedHex = await this.collectSignatures({ cjPeers, unsignedHex, cjUuid })
+            console.log('signedHex: ', signedHex)
           }
         }
       }
@@ -180,6 +185,40 @@ class ColabCoinJoin {
 
       // Do not throw error. This is a top-level event handler.
       return false
+    }
+  }
+
+  // This function is called after peers have coordinated to share UTXOs and
+  // generate an unsigned CoinJoin TX. This function calls the JSON RPC endpoint
+  // for each peer to pass the unsigned TX and collect a partially signed TX.
+  // It then compiles all the partially signed TXs in to a single, fully-signed
+  // TX and broadcasts it to the network.
+  async collectSignatures (inObj = {}) {
+    try {
+      const { cjPeers, unsignedHex, cjUuid } = inObj
+
+      // TODO input validation
+
+      console.log('cjPeers: ', JSON.stringify(cjPeers, null, 2))
+      console.log('unsignedHex: ', unsignedHex)
+      console.log('cjUuid: ', cjUuid)
+
+      // Loop through each peer and make a JSON RPC call to each /sign endpoint.
+    } catch (err) {
+      console.error('Error in collectSignatures()')
+      throw err
+    }
+  }
+
+  // This is a JSON RPC handler. It's called by the /sign endpoint. The RPC data
+  // should contain an unsigned TX. This peer signed its inputs and outputs and
+  // passes the partially-signed TX back to the organizer.
+  async signTx (rpcData) {
+    try {
+      console.log(`signTx() started with this rpcData: ${JSON.stringify(rpcData, null, 2)}`)
+    } catch (err) {
+      console.error('Error in use-cases/colab-coinjoin.js/handleInitRequest(): ', err)
+      return { success: false }
     }
   }
 
@@ -329,7 +368,9 @@ class ColabCoinJoin {
 
       const hex = await this.buildCoinJoinTx({ peerCoinJoinData, satsRequired })
 
-      return hex
+      const cjUuid = newUuid
+
+      return { hex, cjUuid }
     } catch (err) {
       console.error('Error in use-cases/colab-coinjoin.js initiateColabCoinJoin()')
       throw err
