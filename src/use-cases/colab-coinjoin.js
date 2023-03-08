@@ -168,7 +168,10 @@ class ColabCoinJoin {
           // If enough acceptable peers have been discovered, then initiate
           // a CoinJoin transaction.
           if (acceptablePeers.length >= MIN_PLAYERS - 1) {
-            this.initiateColabCoinJoin(acceptablePeers)
+            // Coordinate with peers to generate an unsigned CoinJoin TX
+            const hex = this.initiateColabCoinJoin(acceptablePeers)
+            console.log('Ready to pass unsigned CoinJoin TX to each participant to collect signatures.')
+            console.log('hex: ', hex)
           }
         }
       }
@@ -324,7 +327,9 @@ class ColabCoinJoin {
 
       // console.log('peerCoinJoinData: ', JSON.stringify(peerCoinJoinData, null, 2))
 
-      await this.buildCoinJoinTx({ peerCoinJoinData, satsRequired })
+      const hex = await this.buildCoinJoinTx({ peerCoinJoinData, satsRequired })
+
+      return hex
     } catch (err) {
       console.error('Error in use-cases/colab-coinjoin.js initiateColabCoinJoin()')
       throw err
@@ -407,6 +412,8 @@ class ColabCoinJoin {
 
       const hex = this.adapters.coinjoin.createTransaction({ utxos, outputAddrs, changeAddrs, satsRequired })
       console.log('hex: ', hex)
+
+      return hex
     } catch (err) {
       console.error('Error in buildCoinJoinTx()')
       throw err
