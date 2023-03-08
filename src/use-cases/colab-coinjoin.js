@@ -122,7 +122,7 @@ class ColabCoinJoin {
   // on the CoinJoin pubsub announcement channel.
   // As peer announcements come in on the CoinJoin pubsub channel, this handler
   // will read the message and update the state of the peers array.
-  handleCoinJoinPubsub (announceObj) {
+  async handleCoinJoinPubsub (announceObj) {
     try {
       console.log('handleCoinJoinPubsub() announceObj: ', announceObj)
 
@@ -169,7 +169,7 @@ class ColabCoinJoin {
           // a CoinJoin transaction.
           if (acceptablePeers.length >= MIN_PLAYERS - 1) {
             // Coordinate with peers to generate an unsigned CoinJoin TX
-            const hex = this.initiateColabCoinJoin(acceptablePeers)
+            const hex = await this.initiateColabCoinJoin(acceptablePeers)
             console.log('Ready to pass unsigned CoinJoin TX to each participant to collect signatures.')
             console.log('hex: ', hex)
           }
