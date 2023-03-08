@@ -5,7 +5,15 @@
   of peers.
 */
 
+// Global npm libraries
+const BCHJS = require('@psf/bch-js')
+
 class CoinJoinAdapter {
+  constructor (localConfig = {}) {
+    // Encapsulate dependencies
+    this.bchjs = new BCHJS()
+  }
+
   // This function creates an unsigned transaction. It expects a single input
   // object with the following properties:
   // - utxos - An array of UTXO Objects, to be spent in the transaction.
@@ -32,7 +40,34 @@ class CoinJoinAdapter {
       throw new Error('satsRequired must specify the required amount of sats')
     }
 
-    return 'fake-hex'
+    const transactionBuilder = new this.bchjs.TransactionBuilder()
+
+    // Add Input UTXOs
+    utxos.map(x => {
+      transactionBuilder.addInput(x.tx_hash, x.tx_pos)
+      return false
+    })
+
+    // Add CoinJoin Outputs
+    outputAddrs.map(x => {
+      transactionBuilder.addOutput(x, satsRequired)
+      return false
+    })
+
+    // Add Change Outputs
+    for (let i = 0; i < changeAddrs.length; i++) {
+      const thisChangeAddr = changeAddrs[i]
+
+      // Skip this change address if the sats value is less than dust.
+      if (thisChangeAddr.changeSats < 546) continue
+
+      transactionBuilder.addOutput(thisChangeAddr.changeAddr, thisChangeAddr.changeSats)
+    }
+
+    const tx = transactionBuilder.transaction.buildIncomplete()
+    const hex = tx.toHex()
+
+    return hex
   }
 }
 
