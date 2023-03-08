@@ -324,7 +324,7 @@ class ColabCoinJoin {
 
       // console.log('peerCoinJoinData: ', JSON.stringify(peerCoinJoinData, null, 2))
 
-      await this.buildCoinJoinTx({ peerCoinJoinData })
+      await this.buildCoinJoinTx({ peerCoinJoinData, satsRequired })
     } catch (err) {
       console.error('Error in use-cases/colab-coinjoin.js initiateColabCoinJoin()')
       throw err
@@ -335,6 +335,8 @@ class ColabCoinJoin {
   async buildCoinJoinTx (inObj = {}) {
     try {
       console.log(`buildCoinJoinTx() inObj: ${JSON.stringify(inObj, null, 2)}`)
+
+      const { peerCoinJoinData, satsRequired } = inObj
 
       // Get the state for this wallet. This wallet state is set in the
       // startCoinJoin() function.
@@ -357,8 +359,54 @@ class ColabCoinJoin {
       changeAddr = changeAddr[0]
       console.log('this nodes changeAddr: ', changeAddr)
 
-      // TODO: Create an adapter library based on the CoinJoin examples. It takes
-      // the above data and generates an unsigned CoinJoin TX.
+      // Combine all the peer UTXOs, output addresses, and change addresses
+      // into a single array
+      let utxos = []
+      const outputAddrs = []
+      const changeAddrs = []
+      for (let i = 0; i < peerCoinJoinData.length; i++) {
+        const thisPeer = peerCoinJoinData[i]
+
+        utxos = utxos.concat(thisPeer.coinjoinUtxos)
+
+        outputAddrs.push(thisPeer.outputAddr)
+
+        // Calculate the change for this peer
+        let peerTotalSats = 0
+        thisPeer.coinjoinUtxos.map(x => { peerTotalSats += x.satoshis; return false })
+        // Add a little bit of randomness by charging a random amount between
+        // 546 to 2000 sats for a tx fee
+        let change = peerTotalSats - satsRequired - Math.floor(2000 * Math.random())
+        if (change < 546) {
+          change = 0 // Signal that there is no change
+        }
+
+        changeAddrs.push({
+          changeAddr: thisPeer.changeAddr,
+          changeSats: change
+        })
+      }
+
+      // Add this nodes own UTXOs to the list
+      for (let i = 0; i < myUtxos.length; i++) {
+        utxos = utxos.concat(myUtxos[i].bchUtxos)
+      }
+
+      // Calculate the change going to this wallet.
+      let myChange = totalSats - satsRequired - Math.floor(2000 * Math.random())
+      if (myChange < 546) {
+        myChange = 0
+      }
+
+      // Add this nodes output and change addr
+      outputAddrs.push(outputAddr)
+      changeAddrs.push({
+        changeAddr,
+        changeSats: myChange
+      })
+
+      const hex = this.adapters.coinjoin.createTransaction({ utxos, outputAddrs, changeAddrs, satsRequired })
+      console.log('hex: ', hex)
     } catch (err) {
       console.error('Error in buildCoinJoinTx()')
       throw err
