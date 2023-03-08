@@ -200,10 +200,56 @@ class ColabCoinJoin {
       // TODO input validation
 
       console.log('cjPeers: ', JSON.stringify(cjPeers, null, 2))
-      console.log('unsignedHex: ', unsignedHex)
-      console.log('cjUuid: ', cjUuid)
 
       // Loop through each peer and make a JSON RPC call to each /sign endpoint.
+      for (let i = 0; i < cjPeers.length; i++) {
+        const thisPeer = cjPeers[i]
+
+        const rpcData = {
+          peerData: thisPeer,
+          cjUuid,
+          unsignedHex,
+          msgType: 'colab-coinjoin-sign',
+          endpoint: 'sign'
+        }
+
+        const rpcId = uuidv4()
+
+        // Generate a JSON RPC command.
+        const cmd = this.jsonrpc.request(rpcId, 'ccoinjoin', rpcData)
+        const cmdStr = JSON.stringify(cmd)
+        console.log('cmdStr: ', cmdStr)
+
+        // Get handles on parts of ipfs-coord library.
+        const ipfsCoord = this.adapters.ipfs.ipfsCoordAdapter.ipfsCoord
+        const thisNode = ipfsCoord.thisNode
+
+        try {
+          // Send the RPC command to selected peer.
+          await ipfsCoord.useCases.peer.sendPrivateMessage(
+            thisPeer.ipfsId,
+            cmdStr,
+            thisNode
+          )
+        } catch (err) {
+          console.log(`collectSignatures(): Could not find data for peer ${thisPeer.ipfsId}, skipping.`)
+          break
+
+          // Dev Note: The idea here is that if there is no connection data to send
+          // private messages to a peer in the group, then abort the CoinJoin
+          // attempt. I think that's the best strategy for now.
+          // At some point, there will need to be a cache (array) of pending
+          // CJ transactions, and a garbage collector to clean up aborted sessions.
+        }
+
+        console.log('Waiting for rpc data....')
+
+        // Wait for data to come back from the wallet service.
+        const data = await this.waitForRPCResponse(rpcId)
+        console.log('...returned rpc data: ', data)
+
+        // const message = data.message
+      }
     } catch (err) {
       console.error('Error in collectSignatures()')
       throw err
