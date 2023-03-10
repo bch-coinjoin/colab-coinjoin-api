@@ -125,6 +125,8 @@ class CCoinJoinRPC {
   async signTx (rpcData) {
     let message = 'Could not sign Tx'
 
+    console.log('signTx rpcData: ', JSON.stringify(rpcData, null, 2))
+
     // Analyize the TX and sign this peers inputs and outputs
     message = await this.useCases.coinjoin.signTx(rpcData)
     console.log('message from signTx(): ', message)
