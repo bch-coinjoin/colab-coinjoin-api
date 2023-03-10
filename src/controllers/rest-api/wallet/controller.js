@@ -78,6 +78,14 @@ class WalletRESTControllerLib {
     }
   }
 
+  async getUnsignedTx (ctx) {
+    console.log('getUnsignedTx() REST API handler called.')
+
+    const data = this.useCases.coinjoin.unsignedTxData
+
+    ctx.body = data
+  }
+
   // DRY error handler
   handleError (ctx, err) {
     // If an HTTP status is specified by the buisiness logic, use that.

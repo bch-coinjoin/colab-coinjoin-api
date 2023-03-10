@@ -41,7 +41,8 @@ class ColabCoinJoin {
     this.peers = []
     this.rpcDataQueue = [] // A queue for holding RPC data that has arrived.
     this.mnemoinc = ''
-    this.walletObj = {} // Wallet object for this node. Populated when a peer
+    this.walletObj = {} // Wallet object for this node. Populated when a peer...
+    this.unsignedTxData = null // Holds unsigned TX to pass back to wallet
 
     // Node state - used to track the state of this node with regard to CoinJoins
     // The node has the following states:
@@ -262,6 +263,13 @@ class ColabCoinJoin {
   async signTx (rpcData) {
     try {
       console.log(`signTx() started with this rpcData: ${JSON.stringify(rpcData, null, 2)}`)
+
+      this.unsignedTxData = rpcData.payload.params
+
+      // const peerData = rpcData.payload.params.peerData
+
+      // Pass the unsigned TX and UTXO data back to the wallet, so that it can
+      // sign the inputs that it owns.
     } catch (err) {
       console.error('Error in use-cases/colab-coinjoin.js/handleInitRequest(): ', err)
       return { success: false }
