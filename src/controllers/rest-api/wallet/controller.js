@@ -94,7 +94,7 @@ class WalletRESTControllerLib {
 
   // This endpoint sends a partially signed CoinJoin TX back to the coordinator,
   // so that they can compile it into a fully-signed TX.
-  async sendPartiallySignedTx(ctx) {
+  async sendPartiallySignedTx (ctx) {
     console.log('sendPartiallySignedTx() REST API handler called')
 
     const inObj = ctx.request.body

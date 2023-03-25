@@ -170,7 +170,6 @@ class ColabCoinJoin {
           // If enough acceptable peers have been discovered, then initiate
           // a CoinJoin transaction.
           if (acceptablePeers.length >= MIN_PLAYERS - 1) {
-
             // This peer (self) is the coordinator. Set the state.
             const ipfsCoord = this.adapters.ipfs.ipfsCoordAdapter.ipfsCoord
             const thisNode = ipfsCoord.thisNode
@@ -664,7 +663,7 @@ class ColabCoinJoin {
   // This function is called by a REST API, initiated by the wallet client. It
   // passes a partially signed CoinJoin transaction to this app. This app then
   // passes the TX to the coordinator via the JSON RPC.
-  async sendPartiallySignedTx(inObj = {}) {
+  async sendPartiallySignedTx (inObj = {}) {
     try {
       console.log('sendPartiallySignedTx() executed with this input object: ', JSON.stringify(inObj, null, 2))
       console.log(`Coordinating peer: ${this.coordinator}`)
@@ -677,50 +676,50 @@ class ColabCoinJoin {
 
       // Loop through each peer and make a JSON RPC call to each /sign endpoint.
       // for (let i = 0; i < cjPeers.length; i++) {
-        // const thisPeer = cjPeers[i]
+      // const thisPeer = cjPeers[i]
 
-        const rpcData = {
-          psHex,
-          msgType: 'colab-coinjoin-pstx',
-          endpoint: 'pstx'
-        }
+      const rpcData = {
+        psHex,
+        msgType: 'colab-coinjoin-pstx',
+        endpoint: 'pstx'
+      }
 
-        const rpcId = uuidv4()
+      const rpcId = uuidv4()
 
-        // Generate a JSON RPC command.
-        const cmd = this.jsonrpc.request(rpcId, 'ccoinjoin', rpcData)
-        const cmdStr = JSON.stringify(cmd)
-        console.log('cmdStr: ', cmdStr)
+      // Generate a JSON RPC command.
+      const cmd = this.jsonrpc.request(rpcId, 'ccoinjoin', rpcData)
+      const cmdStr = JSON.stringify(cmd)
+      console.log('cmdStr: ', cmdStr)
 
-        // Get handles on parts of ipfs-coord library.
-        const ipfsCoord = this.adapters.ipfs.ipfsCoordAdapter.ipfsCoord
-        const thisNode = ipfsCoord.thisNode
+      // Get handles on parts of ipfs-coord library.
+      const ipfsCoord = this.adapters.ipfs.ipfsCoordAdapter.ipfsCoord
+      const thisNode = ipfsCoord.thisNode
 
-        try {
-          // Send the RPC command to selected peer.
-          await ipfsCoord.useCases.peer.sendPrivateMessage(
-            this.coordinator,
-            cmdStr,
-            thisNode
-          )
-        } catch (err) {
-          throw new Error(`sendPartiallySignedTx(): Could not find data for coordinator peer ${this.coordinator}, skipping.`)
-          // b
+      try {
+        // Send the RPC command to selected peer.
+        await ipfsCoord.useCases.peer.sendPrivateMessage(
+          this.coordinator,
+          cmdStr,
+          thisNode
+        )
+      } catch (err) {
+        throw new Error(`sendPartiallySignedTx(): Could not find data for coordinator peer ${this.coordinator}, skipping.`)
+        // b
 
-          // Dev Note: This code block should not be necessary?
-        }
+        // Dev Note: This code block should not be necessary?
+      }
 
-        console.log('Waiting for rpc data....')
+      console.log('Waiting for rpc data....')
 
-        // Wait for data to come back from the wallet service.
-        const data = await this.waitForRPCResponse(rpcId)
-        console.log('...sendPartiallySignedTx() returned rpc data: ', data)
+      // Wait for data to come back from the wallet service.
+      const data = await this.waitForRPCResponse(rpcId)
+      console.log('...sendPartiallySignedTx() returned rpc data: ', data)
 
-        // const message = data.message
+      // const message = data.message
       // }
 
       return { success: true }
-    } catch(err) {
+    } catch (err) {
       console.error('Error in sendPartiallySignedTx(): ', err)
       throw err
     }

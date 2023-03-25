@@ -160,7 +160,7 @@ class CCoinJoinRPC {
    * transactions and then compiles them into a fully signed transaction.
    */
   async pstx (rpcData) {
-    let message = 'Could not process partially-signed transaction'
+    const message = 'Could not process partially-signed transaction'
 
     console.log('pstx rpcData: ', JSON.stringify(rpcData, null, 2))
 
