@@ -173,8 +173,7 @@ class CCoinJoinRPC {
 
       message = await this.useCases.coinjoin.combineSigs(psTxObj)
       success = true
-
-    } catch(err) {
+    } catch (err) {
       console.error('Error in pstx() JSON RPC handler. Error: ', err)
     }
 

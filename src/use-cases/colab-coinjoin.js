@@ -730,7 +730,7 @@ class ColabCoinJoin {
   // Add any partially-signed transactions (PSTX) to an array. Once all peers
   // have returned their PSTX, combine them into a fully signed tx, and
   // broadcast it.
-  async combineSigs(inObj = {}) {
+  async combineSigs (inObj = {}) {
     try {
       // const { peerId, psHex } = inObj
 
@@ -739,7 +739,7 @@ class ColabCoinJoin {
 
       console.log('this.peers: ', this.peers)
       console.log('this.psTxs: ', this.psTxs)
-    } catch(err) {
+    } catch (err) {
       console.error('Error in combineSigs(): ', err)
       throw err
     }
