@@ -734,7 +734,11 @@ class ColabCoinJoin {
     try {
       // const { peerId, psHex } = inObj
 
+      const thisPeer = inObj.peerId
+
       // Add the partially signed TX to the array.
+      const peerExists = this.psTxs.find(x => x.peerId === thisPeer)
+      console.log('peerExists: ', peerExists)
       this.psTxs.push(inObj)
 
       console.log('this.peers: ', this.peers)
