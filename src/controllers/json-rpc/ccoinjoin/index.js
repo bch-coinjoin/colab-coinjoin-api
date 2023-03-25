@@ -160,26 +160,26 @@ class CCoinJoinRPC {
    * transactions and then compiles them into a fully signed transaction.
    */
   async pstx (rpcData) {
-    const message = 'Could not process partially-signed transaction'
+    let message = 'Could not process partially-signed transaction'
+    let success = false
 
-    console.log('pstx rpcData: ', JSON.stringify(rpcData, null, 2))
+    try {
+      console.log('pstx rpcData: ', JSON.stringify(rpcData, null, 2))
 
-    // // Analyize the TX and sign this peers inputs and outputs
-    // message = await this.useCases.coinjoin.signTx(rpcData)
-    // console.log('message from signTx(): ', message)
-    //
-    // return {
-    //   success: true,
-    //   status: 200,
-    //   // message: aboutStr,
-    //   // message: JSON.stringify(config.announceJsonLd),
-    //   // message: JSON.stringify({ message: 'ccoinjoin initiate command received!' }),
-    //   message,
-    //   endpoint: 'sign'
-    // }
+      const peerId = rpcData.from
+      const psHex = rpcData.payload.params.psHex
+
+      const psTxObj = { peerId, psHex }
+
+      message = await this.useCases.coinjoin.combineSigs(psTxObj)
+      success = true
+
+    } catch(err) {
+      console.error('Error in pstx() JSON RPC handler. Error: ', err)
+    }
 
     return {
-      success: true,
+      success,
       status: 200,
       message,
       endpoint: 'pstx'

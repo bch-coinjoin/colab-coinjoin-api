@@ -34,6 +34,7 @@ class ColabCoinJoin {
     // Bind the 'this' object to subfunctions in this library.
     this.handleCoinJoinPubsub = this.handleCoinJoinPubsub.bind(this)
     this.rpcHandler = this.rpcHandler.bind(this)
+    this.combineSigs = this.combineSigs.bind(this)
 
     // State
     this.maxSatsToCoinJoin = 0
@@ -44,6 +45,7 @@ class ColabCoinJoin {
     this.mnemoinc = ''
     this.walletObj = {} // Wallet object for this node. Populated when a peer...
     this.unsignedTxData = null // Holds unsigned TX to pass back to wallet
+    this.psTxs = [] // Will hold partially-signed TXs
 
     // Node state - used to track the state of this node with regard to CoinJoins
     // The node has the following states:
@@ -721,6 +723,24 @@ class ColabCoinJoin {
       return { success: true }
     } catch (err) {
       console.error('Error in sendPartiallySignedTx(): ', err)
+      throw err
+    }
+  }
+
+  // Add any partially-signed transactions (PSTX) to an array. Once all peers
+  // have returned their PSTX, combine them into a fully signed tx, and
+  // broadcast it.
+  async combineSigs(inObj = {}) {
+    try {
+      // const { peerId, psHex } = inObj
+
+      // Add the partially signed TX to the array.
+      this.psTxs.push(inObj)
+
+      console.log('this.peers: ', this.peers)
+      console.log('this.psTxs: ', this.psTxs)
+    } catch(err) {
+      console.error('Error in combineSigs(): ', err)
       throw err
     }
   }
