@@ -78,10 +78,28 @@ class WalletRESTControllerLib {
     }
   }
 
+  // This endpoint is polled by the HD wallet client, while it waits for
+  // a CoinJoin session to start. Once started, the unsigned CoinJoin TX
+  // is passed back to the wallet client via this endpoint. They sign their
+  // inputs, then pass the partially signed TX back via the sendPartiallySignedTx()
+  // function.
   async getUnsignedTx (ctx) {
     console.log('getUnsignedTx() REST API handler called.')
 
+    // Get the state from the Use Case
     const data = this.useCases.coinjoin.unsignedTxData
+
+    ctx.body = data
+  }
+
+  // This endpoint sends a partially signed CoinJoin TX back to the coordinator,
+  // so that they can compile it into a fully-signed TX.
+  async sendPartiallySignedTx(ctx) {
+    console.log('sendPartiallySignedTx() REST API handler called')
+
+    const inObj = ctx.request.body
+
+    const data = this.useCases.coinjoin.sendPartiallySignedTx(inObj)
 
     ctx.body = data
   }

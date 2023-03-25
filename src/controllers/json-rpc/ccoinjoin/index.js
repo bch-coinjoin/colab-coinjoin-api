@@ -52,6 +52,9 @@ class CCoinJoinRPC {
         case 'sign':
           await this.rateLimit.limiter(rpcData.from)
           return await this.signTx(rpcData)
+        case 'pstx':
+          await this.rateLimit.limiter(rpcData.from)
+          return await this.pstx(rpcData)
       }
     } catch (err) {
       console.error('Error in CCoinJoinRPC/ccoinjoinRouter(): ', err)
@@ -139,6 +142,47 @@ class CCoinJoinRPC {
       // message: JSON.stringify({ message: 'ccoinjoin initiate command received!' }),
       message,
       endpoint: 'sign'
+    }
+  }
+
+  /**
+   * @api {JSON} /pstx Recieve a partially signed transaction
+   * @apiPermission public
+   * @apiName PSTX
+   * @apiGroup JSON CCoinJoin
+   *
+   * @apiExample Example usage:
+   * {"jsonrpc":"2.0","id":"555","method":"ccoinjoin","params":{ "endpoint": "pstx"}}
+   *
+   * @apiDescription
+   * This endpoint is called by a peer, to return a partially signed transaction
+   * to the organizing peer. The organizing peer collects these partially signed
+   * transactions and then compiles them into a fully signed transaction.
+   */
+  async pstx (rpcData) {
+    let message = 'Could not process partially-signed transaction'
+
+    console.log('pstx rpcData: ', JSON.stringify(rpcData, null, 2))
+
+    // // Analyize the TX and sign this peers inputs and outputs
+    // message = await this.useCases.coinjoin.signTx(rpcData)
+    // console.log('message from signTx(): ', message)
+    //
+    // return {
+    //   success: true,
+    //   status: 200,
+    //   // message: aboutStr,
+    //   // message: JSON.stringify(config.announceJsonLd),
+    //   // message: JSON.stringify({ message: 'ccoinjoin initiate command received!' }),
+    //   message,
+    //   endpoint: 'sign'
+    // }
+
+    return {
+      success: true,
+      status: 200,
+      message,
+      endpoint: 'pstx'
     }
   }
 }
