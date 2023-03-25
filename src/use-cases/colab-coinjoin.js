@@ -7,6 +7,7 @@
 const HdWallet = require('hd-cli-wallet')
 const { v4: uuidv4 } = require('uuid')
 const jsonrpc = require('jsonrpc-lite')
+const Bitcoin = require('@psf/bitcoincashjs-lib')
 
 // Local libraries
 const config = require('../../config')
@@ -38,7 +39,7 @@ class ColabCoinJoin {
 
     // State
     this.maxSatsToCoinJoin = 0
-    this.utxos = []
+    this.utxos = [] // The UTXOs controlled by this peer.
     this.peers = []
     this.coordinator = null // Will hold IPFS ID of coordinating peer
     this.rpcDataQueue = [] // A queue for holding RPC data that has arrived.
@@ -208,13 +209,26 @@ class ColabCoinJoin {
 
       // TODO input validation
 
+      // Save the data for this coordinating peer
+      const ipfsCoord = this.adapters.ipfs.ipfsCoordAdapter.ipfsCoord
+      const thisNode = ipfsCoord.thisNode
+      let rpcData = {
+        peerData: thisNode.ipfsId,
+        cjUuid,
+        unsignedHex,
+        msgType: 'colab-coinjoin-sign',
+        endpoint: 'sign'
+      }
+      this.unsignedTxData = rpcData
+      console.log('Coordinating peers unsignedTxData: ', rpcData)
+
       console.log('cjPeers: ', JSON.stringify(cjPeers, null, 2))
 
       // Loop through each peer and make a JSON RPC call to each /sign endpoint.
       for (let i = 0; i < cjPeers.length; i++) {
         const thisPeer = cjPeers[i]
 
-        const rpcData = {
+        rpcData = {
           peerData: thisPeer,
           cjUuid,
           unsignedHex,
@@ -329,6 +343,7 @@ class ColabCoinJoin {
   // This function is called by handleCoinJoinPubsub() when this node is actively
   // looking to join a CoinJoin tx and enough acceptable participates have been
   // found for this node to initiate a CoinJoin transaction.
+  // The node executing this code become the 'coordinating peer'
   async initiateColabCoinJoin (peers) {
     try {
       console.log('initiateColabCoinJoin() with these peers: ', peers)
@@ -738,11 +753,35 @@ class ColabCoinJoin {
 
       // Add the partially signed TX to the array.
       const peerExists = this.psTxs.find(x => x.peerId === thisPeer)
-      console.log('peerExists: ', peerExists)
-      this.psTxs.push(inObj)
+      if (!peerExists) {
+        this.psTxs.push(inObj)
+      }
 
       console.log('this.peers: ', this.peers)
       console.log('this.psTxs: ', this.psTxs)
+
+      // If all peers have returned their partially-signed TXs, then combine
+      // them into a single transaction and broadcast it.
+      if (this.peers.length === this.psTxs.length) {
+        const txObjs = [] // Holds transaction objects
+        // const thisPeerUtxos = this.utxos
+
+        // Loop through each partially signed transaction
+        for (let i = 0; i < this.psTxs.length; i++) {
+          const thisPsTxHex = this.psTxs[i].psHex
+          // const thisPeerId = this.psTxs[i].peerId
+
+          // Convert the hex string the partially-signed transaction into a Buffer.
+          const txBuffer = Buffer.from(thisPsTxHex, 'hex')
+
+          // Generate a Transaction object from the transaction binary data.
+          const txObj = Bitcoin.Transaction.fromBuffer(txBuffer)
+
+          txObjs.push({ txBuffer, txObj })
+        }
+
+        console.log('txObjs: ', txObjs)
+      }
     } catch (err) {
       console.error('Error in combineSigs(): ', err)
       throw err
