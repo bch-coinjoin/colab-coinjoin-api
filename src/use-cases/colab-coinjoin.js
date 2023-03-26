@@ -799,9 +799,10 @@ class ColabCoinJoin {
       console.log('this.peers: ', this.peers)
       console.log('this.psTxs: ', this.psTxs)
 
-      // If all peers have returned their partially-signed TXs, then combine
+      // If all peers have returned their partially-signed TXs, (including the
+      // coordinating peer), then combine
       // them into a single transaction and broadcast it.
-      if (this.peers.length === this.psTxs.length) {
+      if ((this.peers.length + 1) === this.psTxs.length) {
         const txObjs = [] // Holds transaction objects
         // const thisPeerUtxos = this.utxos
 
