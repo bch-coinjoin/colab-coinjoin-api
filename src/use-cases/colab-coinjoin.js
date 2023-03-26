@@ -205,6 +205,8 @@ class ColabCoinJoin {
   // TX and broadcasts it to the network.
   async collectSignatures (inObj = {}) {
     try {
+      console.log('Starting collectSignatures()...')
+
       const { cjPeers, unsignedHex, cjUuid } = inObj
 
       // TODO input validation
@@ -227,6 +229,7 @@ class ColabCoinJoin {
       // Loop through each peer and make a JSON RPC call to each /sign endpoint.
       for (let i = 0; i < cjPeers.length; i++) {
         const thisPeer = cjPeers[i]
+        console.log('thisPeer: ', JSON.stringify(thisPeer, null, 2))
 
         rpcData = {
           peerData: thisPeer,
@@ -279,19 +282,18 @@ class ColabCoinJoin {
     }
   }
 
-  // This is a JSON RPC handler. It's called by the /sign endpoint. The RPC data
-  // should contain an unsigned TX. This peer signed its inputs and outputs and
+  // This is a JSON RPC handler. It's called by the /sign JSON RPC endpoint.
+  // The RPC data
+  // should contain an unsigned TX. This peer signs its inputs and outputs and
   // passes the partially-signed TX back to the organizer.
   async signTx (rpcData) {
     try {
       console.log(`signTx() started with this rpcData: ${JSON.stringify(rpcData, null, 2)}`)
 
+      // Save the unsigned transaction data to the state of this library.
+      // The client wallet will poll a REST API endpoint that retrieves this
+      // data.
       this.unsignedTxData = rpcData.payload.params
-
-      // const peerData = rpcData.payload.params.peerData
-
-      // Pass the unsigned TX and UTXO data back to the wallet, so that it can
-      // sign the inputs that it owns.
     } catch (err) {
       console.error('Error in use-cases/colab-coinjoin.js/handleInitRequest(): ', err)
       return { success: false }
@@ -757,6 +759,7 @@ class ColabCoinJoin {
         this.psTxs.push(inObj)
       }
 
+      console.log('this.unsignedTxData: ', this.unsignedTxData)
       console.log('this.peers: ', this.peers)
       console.log('this.psTxs: ', this.psTxs)
 
