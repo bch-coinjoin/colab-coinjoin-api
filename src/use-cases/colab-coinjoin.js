@@ -724,6 +724,8 @@ class ColabCoinJoin {
           peerId: thisPeerId,
           psHex: inObj.psHex
         })
+        console.log('Added coordinating peers partially signed transaction to psTxs array.')
+
         return
       }
 
@@ -781,6 +783,8 @@ class ColabCoinJoin {
   // broadcast it.
   async combineSigs (inObj = {}) {
     try {
+      console.log('Starting combineSigs() ...')
+
       // const { peerId, psHex } = inObj
 
       const thisPeer = inObj.peerId
