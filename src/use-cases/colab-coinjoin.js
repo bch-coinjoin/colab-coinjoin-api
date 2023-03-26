@@ -808,7 +808,8 @@ class ColabCoinJoin {
         // Loop through each partially signed transaction
         for (let i = 0; i < this.psTxs.length; i++) {
           const thisPsTxHex = this.psTxs[i].psHex
-          // const thisPeerId = this.psTxs[i].peerId
+          const thisPeerId = this.psTxs[i].peerId
+          console.log(`Adding signed inputs for this peer: ${thisPeerId}`)
 
           // Convert the hex string the partially-signed transaction into a Buffer.
           const txBuffer = Buffer.from(thisPsTxHex, 'hex')
