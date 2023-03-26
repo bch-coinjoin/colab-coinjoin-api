@@ -708,7 +708,7 @@ class ColabCoinJoin {
       console.log('sendPartiallySignedTx() executed with this input object: ', JSON.stringify(inObj, null, 2))
       console.log(`Coordinating peer: ${this.coordinator}`)
 
-      const { psHex } = inObj
+      const { psHex, signedUtxos } = inObj
 
       // TODO input validation
 
@@ -722,7 +722,8 @@ class ColabCoinJoin {
       if (thisPeerId === this.coordinator) {
         this.psTxs.push({
           peerId: thisPeerId,
-          psHex: inObj.psHex
+          psHex: inObj.psHex,
+          signedUtxos
         })
         console.log('Added coordinating peers partially signed transaction to psTxs array.')
 
