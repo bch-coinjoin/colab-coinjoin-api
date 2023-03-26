@@ -98,7 +98,7 @@ describe('#CoinJoin-adapter', () => {
       const result = uut.createTransaction({ utxos, outputAddrs, changeAddrs, satsRequired })
       console.log('result: ', result)
 
-      assert.include(result, '020000000524f')
+      assert.include(result.hex, '020000000524f')
     })
   })
 })
