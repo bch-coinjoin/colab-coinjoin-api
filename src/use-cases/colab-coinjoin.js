@@ -817,6 +817,7 @@ class ColabCoinJoin {
 
           // Generate a Transaction object from the transaction binary data.
           const txObj = Bitcoin.Transaction.fromBuffer(txBuffer)
+          console.log(`txObj ${i}: ${JSON.stringify(txObj, null, 2)}`)
 
           txObjs.push({ txBuffer, txObj })
         }
