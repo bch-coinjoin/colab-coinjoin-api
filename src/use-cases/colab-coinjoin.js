@@ -738,6 +738,7 @@ class ColabCoinJoin {
 
       const rpcData = {
         psHex,
+        signedUtxos,
         msgType: 'colab-coinjoin-pstx',
         endpoint: 'pstx'
       }
