@@ -225,7 +225,7 @@ class ColabCoinJoin {
         endpoint: 'sign'
       }
       this.unsignedTxData = rpcData
-      console.log('Coordinating peers unsignedTxData: ', rpcData)
+      console.log('Coordinating peers unsignedTxData: ', JSON.stringify(rpcData, null, 2))
 
       console.log('cjPeers: ', JSON.stringify(cjPeers, null, 2))
 
