@@ -369,7 +369,7 @@ class ColabCoinJoin {
   // This function is called by handleCoinJoinPubsub() when this node is actively
   // looking to join a CoinJoin tx and enough acceptable participates have been
   // found for this node to initiate a CoinJoin transaction.
-  // The node executing this code become the 'coordinating peer'
+  // The node executing this code becomes the 'coordinating peer'
   async initiateColabCoinJoin (peers) {
     try {
       console.log('initiateColabCoinJoin() with these peers: ', peers)
