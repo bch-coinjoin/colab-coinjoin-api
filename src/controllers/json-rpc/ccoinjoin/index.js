@@ -168,8 +168,9 @@ class CCoinJoinRPC {
 
       const peerId = rpcData.from
       const psHex = rpcData.payload.params.psHex
+      const signedUtxos = rpcData.payload.params.signedUtxos
 
-      const psTxObj = { peerId, psHex }
+      const psTxObj = { peerId, psHex, signedUtxos }
 
       message = await this.useCases.coinjoin.combineSigs(psTxObj)
       success = true
