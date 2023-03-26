@@ -214,14 +214,15 @@ class ColabCoinJoin {
       // Prepare the UTXOs for this coordinating peer. Reformat them in a way
       // that the wallet client expects them.
       const coinjoinUtxos = []
-      for(let i=0; i< this.utxos.length; i++) {
+      for (let i = 0; i < this.utxos.length; i++) {
         const thisAddr = this.utxos[i]
 
         // Loop through each UTXO in the array
-        for(let j=0; j < thisAddr.bchUtxos.length; j++) {
+        for (let j = 0; j < thisAddr.bchUtxos.length; j++) {
           const thisUtxo = thisAddr.bchUtxos[j]
 
           thisUtxo.hdIndex = thisAddr.hdIndex
+          thisUtxo.satoshis = thisUtxo.value
 
           coinjoinUtxos.push(thisUtxo)
         }
