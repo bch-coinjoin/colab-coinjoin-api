@@ -204,7 +204,9 @@ describe('#JSON RPC', () => {
       // Force the RPC type to be 'success', to indicate an RPC that was
       // processed internal to ipfs-coord.
       sandbox.stub(uut.jsonrpc, 'parse').returns({
-        payload: {},
+        payload: {
+          result: {}
+        },
         type: 'success'
       })
 

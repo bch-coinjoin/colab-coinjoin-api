@@ -15,7 +15,7 @@
     "coverage:report": "export SVC_ENV=test && nyc --reporter=html mocha --exit --timeout 15000 --recursive test/unit/ test/e2e/automated/"
   },
   "author": "Chris Troutner <chris.troutner@gmail.com>",
-  "license": "MIT",
+  "license": "GPL-2.0",
   "apidoc": {
     "title": "colab-coinjoin-api",
     "url": "localhost:5000"
@@ -27,7 +27,9 @@
     "bcryptjs": "2.4.3",
     "glob": "7.1.6",
     "go-ipfs": "0.17.0",
-    "ipfs-coord": "8.0.6",
+    "hd-cli-wallet": "1.4.0",
+    "ipfs": "0.58.6",
+    "ipfs-coord": "8.0.8",
     "ipfs-http-client": "55.0.0",
     "ipfsd-ctl": "10.0.6",
     "jsonrpc-lite": "2.2.0",
@@ -46,8 +48,7 @@
     "koa2-ratelimit": "0.9.1",
     "kubo-rpc-client": "3.0.0",
     "line-reader": "0.4.0",
-    "minimal-slp-wallet": "5.5.5",
-    "node-fetch": "npm:@achingbrain/node-fetch@2.6.7",
+    "minimal-slp-wallet": "5.8.5",
     "nodemailer": "6.7.5",
     "passport-local": "1.0.0",
     "public-ip": "4.0.4",

@@ -5,6 +5,7 @@
 */
 
 // const UserUseCases = require('./user')
+const ColabCoinJoin = require('./colab-coinjoin')
 
 class UseCases {
   constructor (localConfig = {}) {
@@ -17,19 +18,29 @@ class UseCases {
 
     // console.log('use-cases/index.js localConfig: ', localConfig)
     // this.user = new UserUseCases(localConfig)
+    this.coinjoin = new ColabCoinJoin(localConfig)
   }
 
   // Run any startup Use Cases at the start of the app.
   async start () {
-    // try {
-    console.log('Async Use Cases have been started.')
+    try {
+      // Since adapters are initialized first, the ipfs-coord adapter should
+      // exist and be initialized by this point in the code path. Overwrite the
+      // CoinJoin pubsub handler with the handler in this library.
+      // console.log('this.adapters.ipfs.ipfsCoordAdapter.ipfsCoord: ', this.adapters.ipfs.ipfsCoordAdapter.ipfsCoord)
+      // this.adapters.ipfs.ipfsCoordAdapter.ipfsCoord.useCases.pubsub.coinjoinPubsubHandler = this.coinjoin.handleCoinJoinPubsub
 
-    return true
-    // } catch (err) {
-    //   console.error('Error in use-cases/index.js/start()')
-    //   // console.log(err)
-    //   throw err
-    // }
+      // Subscribe to the CoinJoin pubsub channel
+      await this.coinjoin.joinCoinJoinPubsub()
+
+      console.log('Async Use Cases have been started.')
+
+      return true
+    } catch (err) {
+      console.error('Error in use-cases/index.js/start()')
+      console.log(err)
+      throw err
+    }
   }
 }
 

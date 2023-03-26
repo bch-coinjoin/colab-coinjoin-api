@@ -82,7 +82,7 @@ module.exports = {
   // BCH Mnemonic for generating encryption keys and payment address
   mnemonic: process.env.MNEMONIC ? process.env.MNEMONIC : '',
 
-  debugLevel: process.env.DEBUG_LEVEL ? parseInt(process.env.DEBUG_LEVEL) : 2,
+  debugLevel: process.env.DEBUG_LEVEL ? parseInt(process.env.DEBUG_LEVEL) : 0,
 
   // Settings for production, using external go-ipfs node.
   isProduction: process.env.SVC_ENV === 'production' ? true : false,
@@ -92,5 +92,8 @@ module.exports = {
     : 5001,
 
   chatPubSubChan: 'psf-ipfs-chat-001',
-  coinjoinPubSubChan: 'coinjoin-bch-001'
+
+  // CoinJoin Configs
+  coinjoinPubSubChan: 'bch-coinjoin-001',
+  minCoinJoinParticipants: 2
 }

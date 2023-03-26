@@ -10,6 +10,7 @@ const { wlogger } = require('../../adapters/wlogger')
 // const UserController = require('./users')
 const AuthController = require('./auth')
 const AboutController = require('./about')
+const CCoinJoinController = require('./ccoinjoin')
 
 let _this
 
@@ -35,6 +36,7 @@ class JSONRPC {
     // this.userController = new UserController(localConfig)
     this.authController = new AuthController(localConfig)
     this.aboutController = new AboutController()
+    this.ccoinjoinController = new CCoinJoinController(localConfig)
 
     // Cache to store IDs of processed JSON RPC commands. Used to prevent
     // duplicate processing.
@@ -81,7 +83,8 @@ class JSONRPC {
         // up to this library. Ignore these messages.
         if (
           parsedData.type.includes('success') &&
-          parsedData.payload.method === undefined
+          parsedData.payload.method === undefined &&
+          parsedData.payload.result.method !== 'ccoinjoin'
         ) {
           return false
         }
@@ -99,6 +102,17 @@ class JSONRPC {
       // Default return string
       let retObj = _this.defaultResponse()
 
+      // Forward data on to coinjoin use-case if this is the response of a CoinJoin query.
+      try {
+        console.log('JSON RPC parsedData.payload.result.method: ', parsedData.payload.result.method)
+        if (parsedData.payload.result.method === 'ccoinjoin') {
+          console.log('routing to CoinJoin adapter')
+          retObj = await _this.useCases.coinjoin.rpcHandler(parsedData)
+        }
+      } catch (err) {
+        /* exit quietly */
+      }
+
       // Route the command to the appropriate route handler.
       switch (parsedData.payload.method) {
         case 'users':
@@ -109,6 +123,9 @@ class JSONRPC {
           break
         case 'about':
           retObj = await _this.aboutController.aboutRouter(parsedData)
+          break
+        case 'ccoinjoin':
+          retObj = await _this.ccoinjoinController.ccoinjoinRouter(parsedData)
       }
 
       // console.log('retObj: ', retObj)

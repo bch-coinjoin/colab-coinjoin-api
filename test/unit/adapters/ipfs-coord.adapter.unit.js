@@ -10,7 +10,7 @@ const IPFSMock = require('../mocks/ipfs-mock')
 const IPFSCoordMock = require('../mocks/ipfs-coord-mock')
 const config = require('../../../config')
 
-describe('#IPFS', () => {
+describe('#IPFS-coord', () => {
   let uut
   let sandbox
 

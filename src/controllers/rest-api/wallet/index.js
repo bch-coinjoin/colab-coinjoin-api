@@ -52,6 +52,9 @@ class WalletRouter {
 
     // Define the routes and attach the controller.
     this.router.get('/', this.getMnemonic)
+    this.router.post('/', this.startCoinJoin)
+    this.router.get('/unsignedTx', this.getUnsignedTx)
+    this.router.post('/partiallySignedTx', this.sendPartiallySignedTx)
 
     // Attach the Controller routes to the Koa app.
     app.use(this.router.routes())
@@ -61,6 +64,19 @@ class WalletRouter {
   async getMnemonic (ctx, next) {
     // await _this.validators.ensureUser(ctx, next)
     await _this.walletRESTController.getMnemonic(ctx, next)
+  }
+
+  async startCoinJoin (ctx, next) {
+    // await _this.validators.ensureUser(ctx, next)
+    await _this.walletRESTController.startCoinJoin(ctx, next)
+  }
+
+  async getUnsignedTx (ctx, next) {
+    await _this.walletRESTController.getUnsignedTx(ctx, next)
+  }
+
+  async sendPartiallySignedTx (ctx, next) {
+    await _this.walletRESTController.sendPartiallySignedTx(ctx, next)
   }
 }
 

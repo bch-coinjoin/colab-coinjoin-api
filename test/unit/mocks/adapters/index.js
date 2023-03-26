@@ -18,6 +18,9 @@ class IpfsCoordAdapter {
       useCases: {
         peer: {
           sendPrivateMessage: () => {}
+        },
+        pubsub: {
+          coinjoinPubsubHandler: () => {}
         }
       }
     }
