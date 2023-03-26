@@ -15,7 +15,7 @@
     "coverage:report": "export SVC_ENV=test && nyc --reporter=html mocha --exit --timeout 15000 --recursive test/unit/ test/e2e/automated/"
   },
   "author": "Chris Troutner <chris.troutner@gmail.com>",
-  "license": "MIT",
+  "license": "GPL-2.0",
   "apidoc": {
     "title": "colab-coinjoin-api",
     "url": "localhost:5000"
