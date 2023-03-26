@@ -215,7 +215,10 @@ class ColabCoinJoin {
       const ipfsCoord = this.adapters.ipfs.ipfsCoordAdapter.ipfsCoord
       const thisNode = ipfsCoord.thisNode
       let rpcData = {
-        peerData: thisNode.ipfsId,
+        peerData: {
+          ipfsId: thisNode.ipfsId,
+          coinjoinUtxos: this.utxos
+        },
         cjUuid,
         unsignedHex,
         msgType: 'colab-coinjoin-sign',
@@ -238,6 +241,7 @@ class ColabCoinJoin {
           msgType: 'colab-coinjoin-sign',
           endpoint: 'sign'
         }
+        console.log('peer rpcData: ', JSON.stringify(rpcData, null, 2))
 
         const rpcId = uuidv4()
 
