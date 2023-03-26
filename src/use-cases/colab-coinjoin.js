@@ -712,6 +712,21 @@ class ColabCoinJoin {
 
       // TODO input validation
 
+      // Get handles on parts of ipfs-coord library.
+      const ipfsCoord = this.adapters.ipfs.ipfsCoordAdapter.ipfsCoord
+      const thisNode = ipfsCoord.thisNode
+      const thisPeerId = thisNode.ipfsId
+
+      // If this function is called by the coordinating peer, then don't send
+      // an RPC command. Instead just add the data to the psTxs state array.
+      if (thisPeerId === this.coordinator) {
+        this.psTxs.push({
+          peerId: thisPeerId,
+          psHex: inObj.psHex
+        })
+        return
+      }
+
       // console.log('cjPeers: ', JSON.stringify(cjPeers, null, 2))
 
       // Loop through each peer and make a JSON RPC call to each /sign endpoint.
@@ -730,10 +745,6 @@ class ColabCoinJoin {
       const cmd = this.jsonrpc.request(rpcId, 'ccoinjoin', rpcData)
       const cmdStr = JSON.stringify(cmd)
       console.log('cmdStr: ', cmdStr)
-
-      // Get handles on parts of ipfs-coord library.
-      const ipfsCoord = this.adapters.ipfs.ipfsCoordAdapter.ipfsCoord
-      const thisNode = ipfsCoord.thisNode
 
       try {
         // Send the RPC command to selected peer.
