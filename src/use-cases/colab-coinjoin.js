@@ -32,7 +32,7 @@ class ColabCoinJoin {
     this.cjPeers = new CJPeers()
     this.hdWallet = new HdWallet({ restURL: 'https://bch-consumer-anacortes-wa-usa.fullstackcash.nl' })
     this.jsonrpc = jsonrpc
-    this.wallet = new BchWallet({ interface: 'consumer-api' })
+    this.wallet = new BchWallet(undefined, { interface: 'consumer-api' })
 
     // Bind the 'this' object to subfunctions in this library.
     this.handleCoinJoinPubsub = this.handleCoinJoinPubsub.bind(this)
