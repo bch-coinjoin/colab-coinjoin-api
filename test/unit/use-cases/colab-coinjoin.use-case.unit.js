@@ -23,7 +23,8 @@ describe('#colab-coinjoin-use-case', () => {
       const inObj = {
         unsignedTxData: coinjoinMocks.unsignedTxData01,
         peers: coinjoinMocks.peers01,
-        psTxs: coinjoinMocks.psTxs01
+        psTxs: coinjoinMocks.psTxs01,
+        txObj: coinjoinMocks.txObj01
       }
 
       const txHex = uut.createFullySignedTx(inObj)

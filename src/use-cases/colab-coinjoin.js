@@ -8,6 +8,7 @@ const HdWallet = require('hd-cli-wallet')
 const { v4: uuidv4 } = require('uuid')
 const jsonrpc = require('jsonrpc-lite')
 const Bitcoin = require('@psf/bitcoincashjs-lib')
+const BchWallet = require('minimal-slp-wallet')
 
 // Local libraries
 const config = require('../../config')
@@ -31,6 +32,7 @@ class ColabCoinJoin {
     this.cjPeers = new CJPeers()
     this.hdWallet = new HdWallet({ restURL: 'https://bch-consumer-anacortes-wa-usa.fullstackcash.nl' })
     this.jsonrpc = jsonrpc
+    this.wallet = new BchWallet({ interface: 'consumer-api' })
 
     // Bind the 'this' object to subfunctions in this library.
     this.handleCoinJoinPubsub = this.handleCoinJoinPubsub.bind(this)
@@ -811,9 +813,14 @@ class ColabCoinJoin {
         const txHex = this.createFullySignedTx({
           unsignedTxData: this.unsignedTxData,
           peers: this.peers,
-          psTxs: this.psTxs
+          psTxs: this.psTxs,
+          txObj: this.txObj
         })
         console.log('Fully-signed txHex: ', txHex)
+
+        // Broadcast the CoinJoin transaction to the BCH network.
+        const txid = await this.wallet.broadcast(txHex)
+        console.log(`CoinJoin TX broadcast with this txid: ${txid}`)
       }
     } catch (err) {
       console.error('Error in combineSigs(): ', err)
@@ -826,48 +833,76 @@ class ColabCoinJoin {
   // into a fully-signed transaction and returns it in hex format.
   createFullySignedTx (inObj = {}) {
     try {
-      const { unsignedTxData, peers, psTxs } = inObj
+      const { unsignedTxData, peers, psTxs, txObj } = inObj
       console.log(`unsignedTxData: ${JSON.stringify(unsignedTxData, null, 2)}`)
       console.log(`peers: ${JSON.stringify(peers, null, 2)}`)
       console.log(`psTxs: ${JSON.stringify(psTxs, null, 2)}`)
-
-      console.log('this.txObj: ', JSON.stringify(this.txObj, null, 2))
+      console.log('txObj: ', JSON.stringify(txObj, null, 2))
 
       // Convert the unsigned transaction from hex to a buffer, and then to an object.
       const unsignedTxBuffer = Buffer.from(unsignedTxData.unsignedHex, 'hex')
       const unsignedTxObj = Bitcoin.Transaction.fromBuffer(unsignedTxBuffer)
       console.log(`unsignedTxObj: ${JSON.stringify(unsignedTxObj, null, 2)}`)
 
-      // Temp code. Trying to decode the script inputs
-      for (let i = 0; i < unsignedTxObj.ins.length; i++) {
-        const thisIn = unsignedTxObj.ins[i]
+      // Loop through each input of the unsigned transaction and replace them
+      // with signed inputs from the peers
+      // for (let i = 0; i < unsignedTxObj.ins.length; i++) {
+      for (let i = 0; i < txObj.inputUtxos.length; i++) {
+        console.log(`i: ${i}`)
+        let inputFound = false
 
-        const hash = thisIn.hash.toString('hex')
-        console.log(`hash for input ${i}: `, hash)
+        // const thisIn = unsignedTxObj.ins[i]
+        const thisIn = txObj.inputUtxos[i]
+
+        // Loop through the signed UTXOs from each peer, and find a match for
+        // the current input.
+        for (let j = 0; j < psTxs.length; j++) {
+          console.log(`j: ${j}`)
+          const thisPeer = psTxs[j]
+
+          if (inputFound) break
+
+          // Loop through each signed UTXO returned by this peer
+          for (let k = 0; k < thisPeer.signedUtxos.length; k++) {
+            console.log(`k: ${k}`)
+            const thisUtxo = thisPeer.signedUtxos[k]
+
+            console.log(`thisUtxo.tx_hash: ${thisUtxo.tx_hash}, thisUtxo.tx_pos: ${thisUtxo.tx_pos}`)
+            console.log(`thisIn.tx_hash: ${thisIn.tx_hash}, thisIn.tx_pos: ${thisIn.tx_pos}`)
+
+            // If a matching signed input is found, then replace the unsigned
+            // tx input with the signed tx input.
+            if (thisUtxo.tx_hash === thisIn.tx_hash && thisUtxo.tx_pos === thisIn.tx_pos) {
+              console.log('matching UTXO found')
+
+              // Convert this peers partially-signed transaction into a tx object.
+              const psTxBuffer = Buffer.from(thisPeer.psHex, 'hex')
+              const psTxObj = Bitcoin.Transaction.fromBuffer(psTxBuffer)
+
+              // Replace the unsigned input with the signed input.
+              unsignedTxObj.ins[i].script = psTxObj.ins[i].script
+
+              console.log(`input ${i} replaced by peer ${j} and utxo ${k}`)
+              inputFound = true
+              break
+            }
+          }
+        }
       }
 
-      // const txObjs = [] // Holds transaction objects
-      // // const thisPeerUtxos = this.utxos
-      //
-      // // Loop through each partially signed transaction
-      // for (let i = 0; i < psTxs.length; i++) {
-      //   const thisPsTxHex = psTxs[i].psHex
-      //   const thisPeerId = psTxs[i].peerId
-      //   console.log(`Adding signed inputs for this peer: ${thisPeerId}`)
-      //
-      //   // Convert the hex string the partially-signed transaction into a Buffer.
-      //   const txBuffer = Buffer.from(thisPsTxHex, 'hex')
-      //
-      //   // Generate a Transaction object from the transaction binary data.
-      //   const txObj = Bitcoin.Transaction.fromBuffer(txBuffer)
-      //   console.log(`txObj ${i}: ${JSON.stringify(txObj, null, 2)}`)
-      //
-      //   txObjs.push({ txBuffer, txObj })
-      // }
-      //
-      // console.log('txObjs: ', txObjs)
+      // At this point, the unsigned transaction object should have fully-signed
+      // inputs.
+      const transactionBuilder = Bitcoin.TransactionBuilder.fromTransaction(
+        unsignedTxObj,
+        'mainnet'
+      )
 
-      return 'fake-hex'
+      // build tx
+      const tx = transactionBuilder.build()
+      // output rawhex
+      const txHex = tx.toHex()
+
+      return txHex
     } catch (err) {
       console.error('Error in createFullySignedTx(): ', err)
       throw err
