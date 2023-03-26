@@ -319,7 +319,7 @@ class ColabCoinJoin {
       // data.
       this.unsignedTxData = rpcData.payload.params
     } catch (err) {
-      console.error('Error in use-cases/colab-coinjoin.js/handleInitRequest(): ', err)
+      console.error('Error in use-cases/colab-coinjoin.js/signTx(): ', err)
       return { success: false }
     }
   }
