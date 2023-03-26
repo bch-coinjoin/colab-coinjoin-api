@@ -211,13 +211,29 @@ class ColabCoinJoin {
 
       // TODO input validation
 
+      // Prepare the UTXOs for this coordinating peer. Reformat them in a way
+      // that the wallet client expects them.
+      const coinjoinUtxos = []
+      for(let i=0; i< this.utxos.length; i++) {
+        const thisAddr = this.utxos[i]
+
+        // Loop through each UTXO in the array
+        for(let j=0; j < thisAddr.bchUtxos.length; j++) {
+          const thisUtxo = thisAddr.bchUtxos[j]
+
+          thisUtxo.hdIndex = thisAddr.hdIndex
+
+          coinjoinUtxos.push(thisUtxo)
+        }
+      }
+
       // Save the data for this coordinating peer
       const ipfsCoord = this.adapters.ipfs.ipfsCoordAdapter.ipfsCoord
       const thisNode = ipfsCoord.thisNode
       let rpcData = {
         peerData: {
           ipfsId: thisNode.ipfsId,
-          coinjoinUtxos: this.utxos
+          coinjoinUtxos
         },
         cjUuid,
         unsignedHex,
