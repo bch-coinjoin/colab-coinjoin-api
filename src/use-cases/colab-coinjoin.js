@@ -805,29 +805,51 @@ class ColabCoinJoin {
       // coordinating peer), then combine
       // them into a single transaction and broadcast it.
       if ((this.peers.length + 1) === this.psTxs.length) {
-        const txObjs = [] // Holds transaction objects
-        // const thisPeerUtxos = this.utxos
-
-        // Loop through each partially signed transaction
-        for (let i = 0; i < this.psTxs.length; i++) {
-          const thisPsTxHex = this.psTxs[i].psHex
-          const thisPeerId = this.psTxs[i].peerId
-          console.log(`Adding signed inputs for this peer: ${thisPeerId}`)
-
-          // Convert the hex string the partially-signed transaction into a Buffer.
-          const txBuffer = Buffer.from(thisPsTxHex, 'hex')
-
-          // Generate a Transaction object from the transaction binary data.
-          const txObj = Bitcoin.Transaction.fromBuffer(txBuffer)
-          console.log(`txObj ${i}: ${JSON.stringify(txObj, null, 2)}`)
-
-          txObjs.push({ txBuffer, txObj })
-        }
-
-        console.log('txObjs: ', txObjs)
+        const txHex = this.createFullySignedTx({
+          unsignedTxData: this.unsignedTxData,
+          peers: this.peers,
+          psTxs: this.psTxs
+        })
+        console.log('Fully-signed txHex: ', txHex)
       }
     } catch (err) {
       console.error('Error in combineSigs(): ', err)
+      throw err
+    }
+  }
+
+  // This function is called once all the partially signed transactions from all
+  // peers have been collected. In combines the partially signed transactions
+  // into a fully-signed transaction and returns it in hex format.
+  createFullySignedTx (inObj = {}) {
+    try {
+      const { unsignedTxData, peers, psTxs } = inObj
+      console.log(`unsignedTxData: ${JSON.stringify(unsignedTxData, null, 2)}`)
+      console.log(`peers: ${JSON.stringify(peers, null, 2)}`)
+      console.log(`psTxs: ${JSON.stringify(psTxs, null, 2)}`)
+
+      const txObjs = [] // Holds transaction objects
+      // const thisPeerUtxos = this.utxos
+
+      // Loop through each partially signed transaction
+      for (let i = 0; i < psTxs.length; i++) {
+        const thisPsTxHex = psTxs[i].psHex
+        const thisPeerId = psTxs[i].peerId
+        console.log(`Adding signed inputs for this peer: ${thisPeerId}`)
+
+        // Convert the hex string the partially-signed transaction into a Buffer.
+        const txBuffer = Buffer.from(thisPsTxHex, 'hex')
+
+        // Generate a Transaction object from the transaction binary data.
+        const txObj = Bitcoin.Transaction.fromBuffer(txBuffer)
+        console.log(`txObj ${i}: ${JSON.stringify(txObj, null, 2)}`)
+
+        txObjs.push({ txBuffer, txObj })
+      }
+
+      console.log('txObjs: ', txObjs)
+    } catch (err) {
+      console.error('Error in createFullySignedTx(): ', err)
       throw err
     }
   }
