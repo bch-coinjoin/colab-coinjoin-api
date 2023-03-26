@@ -6,14 +6,14 @@ This directory contains documentation and diagrams for developers who want to un
 
 The flowchart below illustrates how messages are passed between peers to collaborate on a CoinJoin transaction. Each peer has a wallet ([hd-cli-wallet](https://github.com/bch-coinjoin/hd-cli-wallet)) and access to an instance of this colab-coinjoin-api (API server). Wallets and API servers pass information using a REST API. API servers talk to one another using a JSON RPC via [IPFS](https://ipfs.io) pusub channels.
 
-The diagram below shows the workflow of creating a CoinJoin transaction with two peers. One peer is always chosen as a 'coordinator'. The coordinator is the peer that compiles the final transaction and broadcasts it. The coordinator is the peer that initiates the Collaborative CoinJoin protocol. In the example below, **Peer 1** is the coordinator.
+The diagram below shows the workflow of creating a CoinJoin transaction with two peers. One peer is always chosen as a 'coordinator'. The coordinator is the peer that initiates the Collaborative CoinJoin session, compiles the final transaction, and broadcasts it. In the example below, **Peer 1** is the coordinator.
 
 ![coinjoin flowchart](./dia-diagrams/coinjoin-flowchart.png)
 
 ### Initiating a CoinJoin Transaction
-All peers begin the Collaborative CoinJoin protocol the same way. The wallet makes a call to the `POST /wallet` REST API endpoint of their local API server. With that call, the wallet passes information about the UTXOs that it wants to consolidate through a CoinJoin transaction. The API server will periodically announce its desire to join a CoinJoin transaction by [soliciting for CoinJoin Participation](https://github.com/Permissionless-Software-Foundation/specifications/blob/master/ps004-collaborative-coinjoin.md#5-soliciting-for-coinjoin-participation) as per the Collaborative CoinJoin specification.
+All peers begin the Collaborative CoinJoin protocol the same way. The wallet makes a call to the `POST /wallet` REST API endpoint of their local API server. With that call, the wallet passes information about the UTXOs that it wants to consolidate through a CoinJoin transaction. The API server will periodically announce its desire to join a CoinJoin transaction by [soliciting for CoinJoin Participation as per the Collaborative CoinJoin specification](https://github.com/Permissionless-Software-Foundation/specifications/blob/master/ps004-collaborative-coinjoin.md#5-soliciting-for-coinjoin-participation).
 
-As new announcements are made, each instance of the API server will track the other potential CoinJoin peers. Once enough a peer has detected enough potential peers to start a Collaborative CoinJoin, it will initiate a round by calling the `/initiate` JSON RPC endpoint on the selected peers. Each peer will respond with the UTXOs they want to add to the transaction.
+As new announcements are made, each instance of the API server will track the other potential CoinJoin peers. Once any peer has detected enough potential peers to start a Collaborative CoinJoin, it will initiate a round by calling the `/initiate` JSON RPC endpoint on the selected peers. Each peer will respond with the UTXOs they want to add to the transaction.
 
 ### Building a CoinJoin Transaction
 If all peers respond to the coordinator-peer, then the coordinator-peer will execute its `initiateColabCoinJoin()` function to compile all the information from the peers into an unsigned CoinJoin transaction. It then sends a copy of the unsigned CoinJoin transaction to each peer.
