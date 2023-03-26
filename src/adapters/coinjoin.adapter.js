@@ -40,17 +40,30 @@ class CoinJoinAdapter {
       throw new Error('satsRequired must specify the required amount of sats')
     }
 
+    const txObj = {
+      inputUtxos: [],
+      cjOutputs: [],
+      changeOutputs: [],
+      satsRequired
+    }
+
     const transactionBuilder = new this.bchjs.TransactionBuilder()
 
     // Add Input UTXOs
     utxos.map(x => {
       transactionBuilder.addInput(x.tx_hash, x.tx_pos)
+
+      txObj.inputUtxos.push(x)
+
       return false
     })
 
     // Add CoinJoin Outputs
     outputAddrs.map(x => {
       transactionBuilder.addOutput(x, satsRequired)
+
+      txObj.cjOutputs.push(x)
+
       return false
     })
 
@@ -62,12 +75,14 @@ class CoinJoinAdapter {
       if (thisChangeAddr.changeSats < 546) continue
 
       transactionBuilder.addOutput(thisChangeAddr.changeAddr, thisChangeAddr.changeSats)
+
+      txObj.changeOutputs.push(thisChangeAddr)
     }
 
     const tx = transactionBuilder.transaction.buildIncomplete()
     const hex = tx.toHex()
 
-    return hex
+    return { hex, txObj }
   }
 }
 
