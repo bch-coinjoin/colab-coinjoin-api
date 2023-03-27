@@ -50,6 +50,8 @@ class ColabCoinJoin {
     this.unsignedTxData = null // Holds unsigned TX to pass back to wallet
     this.psTxs = [] // Will hold partially-signed TXs
     this.txObj = {} // Will hold transaction information about the coinjoin TX
+    this.outputAddr = '' // The CoinJoin output address for this peer
+    this.changeAddr = '' // The CoinJoin change address for this peer
 
     // Node state - used to track the state of this node with regard to CoinJoins
     // The node has the following states:
@@ -66,6 +68,7 @@ class ColabCoinJoin {
 
   // Subscribes to the IPFS coinjoin pubsub channel. This overrides the default
   // handler used by ipfs-coord, and sets the handler to this library.
+  // This function is called during startup.
   async joinCoinJoinPubsub () {
     try {
       const ipfsCoord = this.adapters.ipfs.ipfsCoordAdapter.ipfsCoord
@@ -91,6 +94,7 @@ class ColabCoinJoin {
 
   // Announces the node on the bch-coinjoin-001 pubsub channel so that other
   // peers can discover this node.
+  // This function is called periodically by the timer controller.
   async cjAnnounce () {
     try {
       // console.log('cjAnnounce(): this.adapters.ipfs.ipfsCoordAdapter.ipfsCoord', this.adapters.ipfs.ipfsCoordAdapter.ipfsCoord)
@@ -122,6 +126,51 @@ class ColabCoinJoin {
       return true
     } catch (err) {
       console.error('Error in cjAnnounce()')
+      throw err
+    }
+  }
+
+  // This use case is called by the POST /wallet controller where the front end
+  // passes in the UTXOs for a wallet. This changes the state of the node to
+  // 'soliciting', where it begins to actively solicit other nodes to join it
+  // in a CoinJoin transaction to consolidate UTXOs.
+  async startCoinJoin (inObj) {
+    try {
+      console.log(`startCoinJoin() input object: ${JSON.stringify(inObj, null, 2)}`)
+
+      // const { bchUtxos, mnemonic } = inObj
+      const { bchUtxos, outputAddr, changeAddr } = inObj
+
+      // Save the mnemonic to the state of this library, so that it can be used
+      // in downstream functions of the CoinJoin workflow
+      // this.mnemonic = mnemonic
+
+      // Count the total number of sats in all UTXOs
+      let totalSats = 0
+      for (let i = 0; i < bchUtxos.length; i++) {
+        const thisAddr = bchUtxos[i]
+
+        for (let j = 0; j < thisAddr.bchUtxos.length; j++) {
+          const thisUtxo = thisAddr.bchUtxos[j]
+
+          totalSats += thisUtxo.value
+        }
+      }
+      console.log(`totalSats: ${totalSats}`)
+
+      // Update state
+      this.maxSatsToCoinJoin = totalSats
+      this.utxos = bchUtxos
+      this.outputAddr = outputAddr
+      this.changeAddr = changeAddr
+
+      // Update the state of this node, to indicate that it is actively soliciting
+      // for participants in a CoinJoin TX.
+      this.nodeState = 'soliciting'
+
+      return true
+    } catch (err) {
+      console.error('Error in use-cases/colab-coinjoin.js startCoinJoin()')
       throw err
     }
   }
@@ -324,54 +373,13 @@ class ColabCoinJoin {
     }
   }
 
-  // This use case is called by the POST /wallet controller where the front end
-  // passes in the UTXOs for a wallet. This changes the state of the node to
-  // 'soliciting', where it begins to actively solicit other nodes to join it
-  // in a CoinJoin transaction to consolidate UTXOs.
-  async startCoinJoin (inObj) {
-    try {
-      console.log(`startCoinJoin() input object: ${JSON.stringify(inObj, null, 2)}`)
-
-      const { bchUtxos, mnemonic } = inObj
-
-      // Save the mnemonic to the state of this library, so that it can be used
-      // in downstream functions of the CoinJoin workflow
-      this.mnemonic = mnemonic
-
-      // Count the total number of sats in all UTXOs
-      let totalSats = 0
-      for (let i = 0; i < bchUtxos.length; i++) {
-        const thisAddr = bchUtxos[i]
-
-        for (let j = 0; j < thisAddr.bchUtxos.length; j++) {
-          const thisUtxo = thisAddr.bchUtxos[j]
-
-          totalSats += thisUtxo.value
-        }
-      }
-      console.log(`totalSats: ${totalSats}`)
-
-      // Update state
-      this.maxSatsToCoinJoin = totalSats
-      this.utxos = bchUtxos
-
-      // Update the state of this node, to indicate that it is actively soliciting
-      // for participants in a CoinJoin TX.
-      this.nodeState = 'soliciting'
-
-      return true
-    } catch (err) {
-      console.error('Error in use-cases/colab-coinjoin.js startCoinJoin()')
-      throw err
-    }
-  }
-
   // This function is called by handleCoinJoinPubsub() when this node is actively
   // looking to join a CoinJoin tx and enough acceptable participates have been
   // found for this node to initiate a CoinJoin transaction.
   // The node executing this code becomes the 'coordinating peer'
   async initiateColabCoinJoin (peers) {
     try {
+      console.log('----> This peer is now the coordinating peer <----')
       console.log('initiateColabCoinJoin() with these peers: ', peers)
 
       // Generate a UUID for organizing the the CoinJoin.
@@ -495,18 +503,21 @@ class ColabCoinJoin {
       console.log(`myUtxos: ${JSON.stringify(myUtxos, null, 2)}`)
 
       // Generate the wallet object for this node.
-      const walletObj = await this.hdWallet.createWallet.generateWalletObj({ mnemonic: this.mnemonic })
+      // const walletObj = await this.hdWallet.createWallet.generateWalletObj({ mnemonic: this.mnemonic })
 
       // Generate an output and change address for this node.
       // TODO: the nextAddress is not reliably tracked. Some way of accurately tracking it is required.
-      let outputAddr = await this.hdWallet.util.generateAddress(walletObj, walletObj.nextAddress, 1)
-      outputAddr = outputAddr[0]
-      console.log('this nodes outputAddr: ', outputAddr)
+      // let outputAddr = await this.hdWallet.util.generateAddress(walletObj, walletObj.nextAddress, 1)
+      // outputAddr = outputAddr[0]
+      // console.log('this nodes outputAddr: ', outputAddr)
 
       // Generate a change address
-      let changeAddr = await this.hdWallet.util.generateAddress(walletObj, walletObj.nextAddress + 1, 1)
-      changeAddr = changeAddr[0]
-      console.log('this nodes changeAddr: ', changeAddr)
+      // let changeAddr = await this.hdWallet.util.generateAddress(walletObj, walletObj.nextAddress + 1, 1)
+      // changeAddr = changeAddr[0]
+      // console.log('this nodes changeAddr: ', changeAddr)
+
+      const outputAddr = this.outputAddr
+      const changeAddr = this.changeAddr
 
       // Combine all the peer UTXOs, output addresses, and change addresses
       // into a single array
