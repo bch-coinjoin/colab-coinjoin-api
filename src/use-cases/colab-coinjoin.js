@@ -32,7 +32,7 @@ class ColabCoinJoin {
     this.cjPeers = new CJPeers()
     this.hdWallet = new HdWallet({ restURL: 'https://bch-consumer-anacortes-wa-usa.fullstackcash.nl' })
     this.jsonrpc = jsonrpc
-    this.wallet = new BchWallet(undefined, { interface: 'consumer-api' })
+    // this.wallet = new BchWallet(undefined, { interface: 'consumer-api' })
 
     // Bind the 'this' object to subfunctions in this library.
     this.handleCoinJoinPubsub = this.handleCoinJoinPubsub.bind(this)
@@ -86,6 +86,8 @@ class ColabCoinJoin {
         this.handleCoinJoinPubsub,
         thisNode
       )
+
+      return true
     } catch (err) {
       console.error('Error in joinCoinJoinPubsub()')
       throw err
@@ -503,20 +505,6 @@ class ColabCoinJoin {
       console.log('totalSats: ', totalSats)
       console.log(`myUtxos: ${JSON.stringify(myUtxos, null, 2)}`)
 
-      // Generate the wallet object for this node.
-      // const walletObj = await this.hdWallet.createWallet.generateWalletObj({ mnemonic: this.mnemonic })
-
-      // Generate an output and change address for this node.
-      // TODO: the nextAddress is not reliably tracked. Some way of accurately tracking it is required.
-      // let outputAddr = await this.hdWallet.util.generateAddress(walletObj, walletObj.nextAddress, 1)
-      // outputAddr = outputAddr[0]
-      // console.log('this nodes outputAddr: ', outputAddr)
-
-      // Generate a change address
-      // let changeAddr = await this.hdWallet.util.generateAddress(walletObj, walletObj.nextAddress + 1, 1)
-      // changeAddr = changeAddr[0]
-      // console.log('this nodes changeAddr: ', changeAddr)
-
       const outputAddr = this.outputAddr
       const changeAddr = this.changeAddr
 
@@ -851,7 +839,8 @@ class ColabCoinJoin {
         console.log('Fully-signed txHex: ', txHex)
 
         // Broadcast the CoinJoin transaction to the BCH network.
-        const txid = await this.wallet.broadcast(txHex)
+        const wallet = new BchWallet(undefined, { interface: 'consumer-api' })
+        const txid = await wallet.broadcast(txHex)
         console.log(`CoinJoin TX broadcast with this txid: ${txid}`)
       } else {
         console.log('Not all partially signed transaction have been collected. Can not generate final transaction.')
@@ -867,22 +856,22 @@ class ColabCoinJoin {
   // into a fully-signed transaction and returns it in hex format.
   createFullySignedTx (inObj = {}) {
     try {
-      const { unsignedTxData, peers, psTxs, txObj } = inObj
-      console.log(`unsignedTxData: ${JSON.stringify(unsignedTxData, null, 2)}`)
-      console.log(`peers: ${JSON.stringify(peers, null, 2)}`)
-      console.log(`psTxs: ${JSON.stringify(psTxs, null, 2)}`)
-      console.log('txObj: ', JSON.stringify(txObj, null, 2))
+      const { unsignedTxData, psTxs, txObj } = inObj
+      // console.log(`unsignedTxData: ${JSON.stringify(unsignedTxData, null, 2)}`)
+      // console.log(`peers: ${JSON.stringify(peers, null, 2)}`)
+      // console.log(`psTxs: ${JSON.stringify(psTxs, null, 2)}`)
+      // console.log('txObj: ', JSON.stringify(txObj, null, 2))
 
       // Convert the unsigned transaction from hex to a buffer, and then to an object.
       const unsignedTxBuffer = Buffer.from(unsignedTxData.unsignedHex, 'hex')
       const unsignedTxObj = Bitcoin.Transaction.fromBuffer(unsignedTxBuffer)
-      console.log(`unsignedTxObj: ${JSON.stringify(unsignedTxObj, null, 2)}`)
+      // console.log(`unsignedTxObj: ${JSON.stringify(unsignedTxObj, null, 2)}`)
 
       // Loop through each input of the unsigned transaction and replace them
       // with signed inputs from the peers
       // for (let i = 0; i < unsignedTxObj.ins.length; i++) {
       for (let i = 0; i < txObj.inputUtxos.length; i++) {
-        console.log(`i: ${i}`)
+        // console.log(`i: ${i}`)
         let inputFound = false
 
         // const thisIn = unsignedTxObj.ins[i]
@@ -891,23 +880,23 @@ class ColabCoinJoin {
         // Loop through the signed UTXOs from each peer, and find a match for
         // the current input.
         for (let j = 0; j < psTxs.length; j++) {
-          console.log(`j: ${j}`)
+          // console.log(`j: ${j}`)
           const thisPeer = psTxs[j]
 
           if (inputFound) break
 
           // Loop through each signed UTXO returned by this peer
           for (let k = 0; k < thisPeer.signedUtxos.length; k++) {
-            console.log(`k: ${k}`)
+            // console.log(`k: ${k}`)
             const thisUtxo = thisPeer.signedUtxos[k]
 
-            console.log(`thisUtxo.tx_hash: ${thisUtxo.tx_hash}, thisUtxo.tx_pos: ${thisUtxo.tx_pos}`)
-            console.log(`thisIn.tx_hash: ${thisIn.tx_hash}, thisIn.tx_pos: ${thisIn.tx_pos}`)
+            // console.log(`thisUtxo.tx_hash: ${thisUtxo.tx_hash}, thisUtxo.tx_pos: ${thisUtxo.tx_pos}`)
+            // console.log(`thisIn.tx_hash: ${thisIn.tx_hash}, thisIn.tx_pos: ${thisIn.tx_pos}`)
 
             // If a matching signed input is found, then replace the unsigned
             // tx input with the signed tx input.
             if (thisUtxo.tx_hash === thisIn.tx_hash && thisUtxo.tx_pos === thisIn.tx_pos) {
-              console.log('matching UTXO found')
+              // console.log('matching UTXO found')
 
               // Convert this peers partially-signed transaction into a tx object.
               const psTxBuffer = Buffer.from(thisPeer.psHex, 'hex')
@@ -916,7 +905,7 @@ class ColabCoinJoin {
               // Replace the unsigned input with the signed input.
               unsignedTxObj.ins[i].script = psTxObj.ins[i].script
 
-              console.log(`input ${i} replaced by peer ${j} and utxo ${k}`)
+              // console.log(`input ${i} replaced by peer ${j} and utxo ${k}`)
               inputFound = true
               break
             }

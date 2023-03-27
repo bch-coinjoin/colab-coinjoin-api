@@ -22,6 +22,18 @@ class IpfsCoordAdapter {
         pubsub: {
           coinjoinPubsubHandler: () => {}
         }
+      },
+      adapters: {
+        pubsub: {
+          ipfs: {
+            ipfs: {
+              pubsub: {
+                unsubscribe: async () => {}
+              }
+            }
+          },
+          subscribeToPubsubChannel: async () => {}
+        }
       }
     }
   }
