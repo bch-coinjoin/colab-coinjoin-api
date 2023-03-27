@@ -527,6 +527,7 @@ class ColabCoinJoin {
       const changeAddrs = []
       for (let i = 0; i < peerCoinJoinData.length; i++) {
         const thisPeer = peerCoinJoinData[i]
+        console.log(`thisPeer: ${JSON.stringify(thisPeer, null, 2)}`)
 
         utxos = utxos.concat(thisPeer.coinjoinUtxos)
 
@@ -541,6 +542,8 @@ class ColabCoinJoin {
         if (change < 546) {
           change = 0 // Signal that there is no change
         }
+        const fee = peerTotalSats - change
+        console.log(`Peer ${i} has total sats of ${peerTotalSats}, paying a tx fee of ${fee}, and getting ${change} sats in change.`)
 
         changeAddrs.push({
           changeAddr: thisPeer.changeAddr,
