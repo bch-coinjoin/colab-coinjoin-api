@@ -525,7 +525,7 @@ class ColabCoinJoin {
         thisPeer.coinjoinUtxos.map(x => { peerTotalSats += x.satoshis; return false })
         // Add a little bit of randomness by charging a random amount between
         // 546 to 2000 sats for a tx fee
-        let change = peerTotalSats - satsRequired - Math.floor(2000 * Math.random())
+        let change = peerTotalSats - satsRequired - 1000 - Math.floor(2000 * Math.random())
         if (change < 546) {
           change = 0 // Signal that there is no change
         }
