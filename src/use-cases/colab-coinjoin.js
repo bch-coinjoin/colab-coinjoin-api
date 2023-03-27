@@ -446,7 +446,7 @@ class ColabCoinJoin {
 
         // Wait for data to come back from the wallet service.
         const data = await this.waitForRPCResponse(rpcId)
-        console.log('...returned rpc data: ', data)
+        console.log('...returned rpc data: ', JSON.stringify(data, null, 2))
 
         const message = data.message
         console.log(`message: ${JSON.stringify(message, null, 2)}`)
@@ -566,7 +566,12 @@ class ColabCoinJoin {
         changeSats: myChange
       })
 
-      const { hex, txObj } = this.adapters.coinjoin.createTransaction({ utxos, outputAddrs, changeAddrs, satsRequired })
+      const { hex, txObj } = this.adapters.coinjoin.createTransaction({
+        utxos,
+        outputAddrs,
+        changeAddrs,
+        satsRequired
+      })
       console.log('hex: ', hex)
 
       this.txObj = txObj
@@ -676,10 +681,10 @@ class ColabCoinJoin {
       // walletObj = await this.hdWallet.updateBalance.updateWallet(walletObj)
       // console.log('walletUtxoData: ', JSON.stringify(walletObj, null, 2))
 
-      // const coinjoinUtxos = this.hdWallet.utxos.selectCoinJoinUtxos(requiredSats, walletObj.bchUtxos)
-      // console.log('coinjoinUtxos: ', JSON.stringify(coinjoinUtxos, null, 2))
+      const coinjoinUtxos = this.hdWallet.utxos.selectCoinJoinUtxos(requiredSats, this.utxos)
+      console.log('coinjoinUtxos: ', JSON.stringify(coinjoinUtxos, null, 2))
 
-      const coinjoinUtxos = this.utxos
+      // const coinjoinUtxos = this.utxos
 
       // Sum the total sats from all selected UTXOs
       let totalSats = 0
