@@ -449,6 +449,7 @@ class ColabCoinJoin {
         console.log('...returned rpc data: ', data)
 
         const message = data.message
+        console.log(`message: ${JSON.stringify(message, null, 2)}`)
 
         // Exit if a peer is already occupied in another coinjoin session.
         if (typeof (message) === 'string' && message.includes('already underway')) {
@@ -667,16 +668,18 @@ class ColabCoinJoin {
 
       const potentialCoordinator = rpcData.from
 
-      console.log('mnemonic: ', this.mnemonic)
+      // console.log('mnemonic: ', this.mnemonic)
 
       // Generate the wallet object
-      let walletObj = await this.hdWallet.createWallet.generateWalletObj({ mnemonic: this.mnemonic })
+      // let walletObj = await this.hdWallet.createWallet.generateWalletObj({ mnemonic: this.mnemonic })
 
-      walletObj = await this.hdWallet.updateBalance.updateWallet(walletObj)
-      console.log('walletUtxoData: ', JSON.stringify(walletObj, null, 2))
+      // walletObj = await this.hdWallet.updateBalance.updateWallet(walletObj)
+      // console.log('walletUtxoData: ', JSON.stringify(walletObj, null, 2))
 
-      const coinjoinUtxos = this.hdWallet.utxos.selectCoinJoinUtxos(requiredSats, walletObj.bchUtxos)
-      console.log('coinjoinUtxos: ', JSON.stringify(coinjoinUtxos, null, 2))
+      // const coinjoinUtxos = this.hdWallet.utxos.selectCoinJoinUtxos(requiredSats, walletObj.bchUtxos)
+      // console.log('coinjoinUtxos: ', JSON.stringify(coinjoinUtxos, null, 2))
+
+      const coinjoinUtxos = this.utxos
 
       // Sum the total sats from all selected UTXOs
       let totalSats = 0
@@ -689,14 +692,17 @@ class ColabCoinJoin {
       }
 
       // Generate new output address
-      let outputAddr = await this.hdWallet.util.generateAddress(walletObj, walletObj.nextAddress, 1)
-      outputAddr = outputAddr[0]
-      console.log('outputAddr: ', outputAddr)
+      // let outputAddr = await this.hdWallet.util.generateAddress(walletObj, walletObj.nextAddress, 1)
+      // outputAddr = outputAddr[0]
+      // console.log('outputAddr: ', outputAddr)
+
+      const outputAddr = this.outputAddr
 
       // Generate a change address
-      let changeAddr = await this.hdWallet.util.generateAddress(walletObj, walletObj.nextAddress + 1, 1)
-      changeAddr = changeAddr[0]
-      console.log('changeAddr: ', changeAddr)
+      // let changeAddr = await this.hdWallet.util.generateAddress(walletObj, walletObj.nextAddress + 1, 1)
+      // changeAddr = changeAddr[0]
+      // console.log('changeAddr: ', changeAddr)
+      const changeAddr = this.changeAddr
 
       // Compile an output object to return to the peer initiating the CoinJoin
       const outObj = {
