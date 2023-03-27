@@ -754,6 +754,13 @@ class ColabCoinJoin {
         })
         console.log('Added coordinating peers partially signed transaction to psTxs array.')
 
+        // Call the combineSigs function to see if it is ready to combine the
+        // the partially signed transactions.
+        await this.combineSigs({
+          peerId: thisPeerId,
+          psHex: inObj.psHex
+        })
+
         return
       }
 
@@ -843,6 +850,8 @@ class ColabCoinJoin {
         // Broadcast the CoinJoin transaction to the BCH network.
         const txid = await this.wallet.broadcast(txHex)
         console.log(`CoinJoin TX broadcast with this txid: ${txid}`)
+      } else {
+        console.log('Not all partially signed transaction have been collected. Can not generate final transaction.')
       }
     } catch (err) {
       console.error('Error in combineSigs(): ', err)
