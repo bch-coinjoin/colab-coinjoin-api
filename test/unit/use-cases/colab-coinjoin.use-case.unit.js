@@ -320,6 +320,63 @@ describe('#colab-coinjoin-use-case', () => {
     })
   })
 
+  describe('#signTx', () => {
+    it('should update the state with the unsigned transaction', () => {
+      const rpcData = {
+        payload: {
+          params: 'fake-unsigned-tx'
+        }
+      }
+
+      uut.signTx(rpcData)
+
+      assert.equal(uut.unsignedTxData, 'fake-unsigned-tx')
+    })
+  })
+
+  describe('#sendPartiallySignedTx', () => {
+    it('should handle locally if this node is the coordinator peer', async () => {
+      // Mock dependencies and force desired code path
+      uut.adapters.ipfs.ipfsCoordAdapter.ipfsCoord.thisNode.ipfsId = 'coordinator-ipfs-id'
+      uut.coordinator = 'coordinator-ipfs-id'
+      sandbox.stub(uut, 'combineSigs').resolves()
+
+      const result = await uut.sendPartiallySignedTx()
+      // console.log('result: ', result)
+
+      assert.equal(result, 1)
+    })
+
+    it('should send the TX to each peer', async () => {
+      // Mock dependencies and force desired code path
+      uut.adapters.ipfs.ipfsCoordAdapter.ipfsCoord.thisNode.ipfsId = 'not-a-coordinator-ipfs-id'
+      uut.coordinator = 'coordinator-ipfs-id'
+      sandbox.stub(uut.adapters.ipfs.ipfsCoordAdapter.ipfsCoord.useCases.peer, 'sendPrivateMessage').resolves()
+      sandbox.stub(uut, 'waitForRPCResponse').resolves()
+
+      const result = await uut.sendPartiallySignedTx()
+      // console.log('result: ', result)
+
+      assert.equal(result.success, true)
+    })
+
+    it('should throw error if it can not communicate with the peer', async () => {
+      try {
+        // Mock dependencies and force desired code path
+        uut.adapters.ipfs.ipfsCoordAdapter.ipfsCoord.thisNode.ipfsId = 'not-a-coordinator-ipfs-id'
+        uut.coordinator = 'coordinator-ipfs-id'
+        sandbox.stub(uut.adapters.ipfs.ipfsCoordAdapter.ipfsCoord.useCases.peer, 'sendPrivateMessage').rejects(new Error('test error'))
+        // sandbox.stub(uut, 'waitForRPCResponse').resolves()
+
+        await uut.sendPartiallySignedTx()
+
+        assert.fail('Unexpected result')
+      } catch (err) {
+        assert.include(err.message, 'Could not find data for coordinator peer')
+      }
+    })
+  })
+
   describe('#createFullySignedTx', () => {
     it('should combine partially signed TXs into a fully-signed TX', () => {
       const inObj = {
