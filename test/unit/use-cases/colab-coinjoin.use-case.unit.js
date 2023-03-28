@@ -377,6 +377,42 @@ describe('#colab-coinjoin-use-case', () => {
     })
   })
 
+  describe('#combineSigs', () => {
+    it('should add new tx to the array, then return 1', async () => {
+      // Mock dependencies and force desired code path
+      sandbox.stub(uut, 'createFullySignedTx').returns('fake-hex')
+      sandbox.stub(uut, 'broadcastTx').resolves()
+      uut.psTxs.push({})
+      uut.psTxs.push({})
+
+      const result = await uut.combineSigs()
+      console.log('result: ', result)
+
+      assert.equal(result, 1)
+    })
+
+    it('should add new tx to the array, then return 1', async () => {
+      // Mock dependencies and force desired code path
+      sandbox.stub(uut, 'createFullySignedTx').returns('fake-hex')
+      sandbox.stub(uut, 'broadcastTx').resolves()
+
+      const result = await uut.combineSigs()
+      console.log('result: ', result)
+
+      assert.equal(result, 2)
+    })
+
+    it('should catch, report, and throw errors', async () => {
+      try {
+        await uut.combineSigs()
+
+        assert.fail('Unexpected result')
+      } catch (err) {
+        assert.include(err.message, 'Cannot read')
+      }
+    })
+  })
+
   describe('#createFullySignedTx', () => {
     it('should combine partially signed TXs into a fully-signed TX', () => {
       const inObj = {

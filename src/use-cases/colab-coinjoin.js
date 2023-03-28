@@ -705,84 +705,11 @@ class ColabCoinJoin {
     }
   }
 
-  // Returns a promise that resolves to data when the RPC response is recieved.
-  async waitForRPCResponse (rpcId) {
-    try {
-      // Initialize variables for tracking the return data.
-      let dataFound = false
-      let cnt = 0
-
-      // Default return value, if the remote computer does not respond in time.
-      let data = {
-        success: false,
-        message: 'request timed out',
-        data: ''
-      }
-
-      // Loop that waits for a response from the service provider.
-      do {
-        // console.log(`this.rpcDataQueue.length: ${this.rpcDataQueue.length}`)
-        for (let i = 0; i < this.rpcDataQueue.length; i++) {
-          const rawData = this.rpcDataQueue[i]
-          // console.log(`rawData: ${JSON.stringify(rawData, null, 2)}`)
-
-          if (rawData.payload.id === rpcId) {
-            dataFound = true
-            // console.log('data was found in the queue')
-
-            // console.log(
-            //   `rawData.payload: ${JSON.stringify(rawData.payload, null, 2)}`
-            // )
-            data = rawData.payload.result.value
-
-            // Remove the data from the queue
-            this.rpcDataQueue.splice(i, 1)
-
-            break
-          }
-        }
-
-        // Wait between loops.
-        // await this.sleep(1000)
-        await this.sleep(2000)
-
-        cnt++
-
-        // Exit if data was returned, or the window for a response expires.
-      } while (!dataFound && cnt < 60) // 60 * 2 seconds = 2 minutes
-      // console.log(`dataFound: ${dataFound}, cnt: ${cnt}`)
-
-      return data
-    } catch (err) {
-      console.error('Error in waitForRPCResponse()')
-      throw err
-    }
-  }
-
-  // This handler is triggered when RPC data comes in over IPFS.
-  // Handle RPC input, and add the response to the RPC queue.
-  // Once in the queue, it will get processed by waitForRPCResponse()
-  rpcHandler (data) {
-    try {
-      // Convert string input into an object.
-      // const jsonData = JSON.parse(data)
-
-      console.log(`JSON RPC response for ID ${data.payload.id} received.`)
-
-      this.rpcDataQueue.push(data)
-    } catch (err) {
-      console.error('Error in rest-api.js/rpcHandler(): ', err)
-      // Do not throw error. This is a top-level function.
-    }
-  }
-
-  sleep (ms) {
-    return new Promise(resolve => setTimeout(resolve, ms))
-  }
-
   // Add any partially-signed transactions (PSTX) to an array. Once all peers
   // have returned their PSTX, combine them into a fully signed tx, and
   // broadcast it.
+  // This function is called by /pstx JSON RPC endpoint. It's also called by
+  // sendPartiallySignedTx() when this node is the coordination peer.
   async combineSigs (inObj = {}) {
     try {
       console.log('Starting combineSigs() ...')
@@ -814,11 +741,13 @@ class ColabCoinJoin {
         console.log('Fully-signed txHex: ', txHex)
 
         // Broadcast the CoinJoin transaction to the BCH network.
-        const wallet = new BchWallet(undefined, { interface: 'consumer-api' })
-        const txid = await wallet.broadcast(txHex)
-        console.log(`CoinJoin TX broadcast with this txid: ${txid}`)
+        await this.broadcastTx(txHex)
+
+        return 2
       } else {
         console.log('Not all partially signed transaction have been collected. Can not generate final transaction.')
+
+        return 1
       }
     } catch (err) {
       console.error('Error in combineSigs(): ', err)
@@ -905,6 +834,90 @@ class ColabCoinJoin {
       console.error('Error in createFullySignedTx(): ', err)
       throw err
     }
+  }
+
+  // Broadcast a hexidecimal representation of a transaction to the BCH network.
+  async broadcastTx (txHex) {
+    const wallet = new BchWallet(undefined, { interface: 'consumer-api' })
+    const txid = await wallet.broadcast(txHex)
+    console.log(`CoinJoin TX broadcast with this txid: ${txid}`)
+
+    return txid
+  }
+
+  // Returns a promise that resolves to data when the RPC response is recieved.
+  async waitForRPCResponse (rpcId) {
+    try {
+      // Initialize variables for tracking the return data.
+      let dataFound = false
+      let cnt = 0
+
+      // Default return value, if the remote computer does not respond in time.
+      let data = {
+        success: false,
+        message: 'request timed out',
+        data: ''
+      }
+
+      // Loop that waits for a response from the service provider.
+      do {
+        // console.log(`this.rpcDataQueue.length: ${this.rpcDataQueue.length}`)
+        for (let i = 0; i < this.rpcDataQueue.length; i++) {
+          const rawData = this.rpcDataQueue[i]
+          // console.log(`rawData: ${JSON.stringify(rawData, null, 2)}`)
+
+          if (rawData.payload.id === rpcId) {
+            dataFound = true
+            // console.log('data was found in the queue')
+
+            // console.log(
+            //   `rawData.payload: ${JSON.stringify(rawData.payload, null, 2)}`
+            // )
+            data = rawData.payload.result.value
+
+            // Remove the data from the queue
+            this.rpcDataQueue.splice(i, 1)
+
+            break
+          }
+        }
+
+        // Wait between loops.
+        // await this.sleep(1000)
+        await this.sleep(2000)
+
+        cnt++
+
+        // Exit if data was returned, or the window for a response expires.
+      } while (!dataFound && cnt < 60) // 60 * 2 seconds = 2 minutes
+      // console.log(`dataFound: ${dataFound}, cnt: ${cnt}`)
+
+      return data
+    } catch (err) {
+      console.error('Error in waitForRPCResponse()')
+      throw err
+    }
+  }
+
+  // This handler is triggered when RPC data comes in over IPFS.
+  // Handle RPC input, and add the response to the RPC queue.
+  // Once in the queue, it will get processed by waitForRPCResponse()
+  rpcHandler (data) {
+    try {
+      // Convert string input into an object.
+      // const jsonData = JSON.parse(data)
+
+      console.log(`JSON RPC response for ID ${data.payload.id} received.`)
+
+      this.rpcDataQueue.push(data)
+    } catch (err) {
+      console.error('Error in rest-api.js/rpcHandler(): ', err)
+      // Do not throw error. This is a top-level function.
+    }
+  }
+
+  sleep (ms) {
+    return new Promise(resolve => setTimeout(resolve, ms))
   }
 }
 
