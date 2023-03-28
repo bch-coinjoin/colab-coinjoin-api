@@ -284,6 +284,42 @@ describe('#colab-coinjoin-use-case', () => {
     })
   })
 
+  describe('#collectSignatures', () => {
+    it('should submit the unsigned TX to each peer', async () => {
+      // Mock dependencies and force desired code path
+      sandbox.stub(uut, 'waitForRPCResponse').resolves()
+      uut.utxos = coinjoinMocks.startCoinJoinInput01.bchUtxos
+
+      const inObj = {
+        cjPeers: coinjoinMocks.preTxPeerData01.peerCoinJoinData
+      }
+
+      const result = await uut.collectSignatures(inObj)
+      // console.log('result: ', result)
+
+      assert.equal(result, true)
+    })
+
+    it('should throw an error if coordinator can not communicate with peer', async () => {
+      try {
+        // Mock dependencies and force desired code path
+        sandbox.stub(uut, 'waitForRPCResponse').resolves()
+        uut.utxos = coinjoinMocks.startCoinJoinInput01.bchUtxos
+        sandbox.stub(uut.adapters.ipfs.ipfsCoordAdapter.ipfsCoord.useCases.peer, 'sendPrivateMessage').rejects(new Error('can not communicate with peer'))
+
+        const inObj = {
+          cjPeers: coinjoinMocks.preTxPeerData01.peerCoinJoinData
+        }
+
+        await uut.collectSignatures(inObj)
+
+        assert.fail('Unexpected result')
+      } catch (err) {
+        assert.include(err.message, 'Could not communicate with peer')
+      }
+    })
+  })
+
   describe('#createFullySignedTx', () => {
     it('should combine partially signed TXs into a fully-signed TX', () => {
       const inObj = {

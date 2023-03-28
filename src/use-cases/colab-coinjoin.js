@@ -504,6 +504,7 @@ class ColabCoinJoin {
     }
   }
 
+  // This function is called by handleCoinJoinPubsub()
   // This function is called after peers have coordinated to share UTXOs and
   // generate an unsigned CoinJoin TX. This function calls the JSON RPC endpoint
   // for each peer to pass the unsigned TX and collect a partially signed TX.
@@ -512,6 +513,7 @@ class ColabCoinJoin {
   async collectSignatures (inObj = {}) {
     try {
       console.log('Starting collectSignatures()...')
+      console.log(`inObj: ${JSON.stringify(inObj, null, 2)}`)
 
       const { cjPeers, unsignedHex, cjUuid } = inObj
 
@@ -585,8 +587,8 @@ class ColabCoinJoin {
             thisNode
           )
         } catch (err) {
-          console.log(`collectSignatures(): Could not find data for peer ${thisPeer.ipfsId}, skipping.`)
-          break
+          throw new Error(`collectSignatures(): Could not communicate with peer ${thisPeer.ipfsId}, skipping.`)
+          // break
 
           // Dev Note: The idea here is that if there is no connection data to send
           // private messages to a peer in the group, then abort the CoinJoin
@@ -603,6 +605,8 @@ class ColabCoinJoin {
 
         // const message = data.message
       }
+
+      return true
     } catch (err) {
       console.error('Error in collectSignatures()')
       throw err
