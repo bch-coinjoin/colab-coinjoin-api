@@ -370,6 +370,140 @@ class ColabCoinJoin {
     }
   }
 
+  // This is a JSON RPC handler that is called when another peer tries to initiate
+  // a CoinJoin transaction with this node.
+  async handleInitRequest (rpcData) {
+    try {
+      console.log(`handleInitRequest() started with this rpcData: ${JSON.stringify(rpcData, null, 2)}`)
+
+      const { msgType, uuid, requiredSats, endpoint } = rpcData.payload.params
+      console.log(`msgType: ${msgType}`)
+      console.log(`uuid: ${uuid}`)
+      console.log(`requiredSats: ${requiredSats}`)
+      console.log(`endpoint: ${endpoint}`)
+      // UUID is the CoinJoin UUID that is used in the response to the initator.
+
+      const potentialCoordinator = rpcData.from
+
+      const coinjoinUtxos = this.hdWallet.utxos.selectCoinJoinUtxos(requiredSats, this.utxos)
+      console.log('coinjoinUtxos: ', JSON.stringify(coinjoinUtxos, null, 2))
+
+      // Sum the total sats from all selected UTXOs
+      let totalSats = 0
+      coinjoinUtxos.map(x => { totalSats += x.satoshis; return false })
+
+      // If the UTXOs do not total up to required amount, reject the petition
+      // because this node is not able to participate.
+      if (totalSats < requiredSats) {
+        return { success: false }
+      }
+
+      const outputAddr = this.outputAddr
+      const changeAddr = this.changeAddr
+
+      // Compile an output object to return to the peer initiating the CoinJoin
+      const outObj = {
+        coinjoinUtxos,
+        outputAddr,
+        changeAddr,
+        success: true
+      }
+
+      // Update the state to reflect the coordinating peer
+      this.coordinator = potentialCoordinator
+
+      return outObj
+    } catch (err) {
+      console.error('Error in use-cases/colab-coinjoin.js/handleInitRequest(): ', err)
+      return { success: false }
+    }
+  }
+
+  // This function compiles all peer data into an unsigned CoinJoin transaction.
+  // This function is called by initiateColabCoinJoin() after all peers have
+  // responded with the UTXOs they want included in the CoinJoin transaction.
+  async buildCoinJoinTx (inObj = {}) {
+    try {
+      console.log(`buildCoinJoinTx() inObj: ${JSON.stringify(inObj, null, 2)}`)
+
+      const { peerCoinJoinData, satsRequired } = inObj
+
+      // Get the state for this wallet. This wallet state is set in the
+      // startCoinJoin() function.
+      const totalSats = this.maxSatsToCoinJoin
+      const myUtxos = this.utxos
+      console.log('totalSats: ', totalSats)
+      console.log(`myUtxos: ${JSON.stringify(myUtxos, null, 2)}`)
+
+      const outputAddr = this.outputAddr
+      const changeAddr = this.changeAddr
+
+      // Combine all the peer UTXOs, output addresses, and change addresses
+      // into a single array
+      let utxos = []
+      const outputAddrs = []
+      const changeAddrs = []
+      for (let i = 0; i < peerCoinJoinData.length; i++) {
+        const thisPeer = peerCoinJoinData[i]
+        console.log(`thisPeer: ${JSON.stringify(thisPeer, null, 2)}`)
+
+        utxos = utxos.concat(thisPeer.coinjoinUtxos)
+
+        outputAddrs.push(thisPeer.outputAddr)
+
+        // Calculate the change for this peer
+        let peerTotalSats = 0
+        thisPeer.coinjoinUtxos.map(x => { peerTotalSats += x.satoshis; return false })
+        // Add a little bit of randomness by charging a random amount between
+        // 546 to 2000 sats for a tx fee
+        let change = peerTotalSats - satsRequired - 5000 - Math.floor(2000 * Math.random())
+        if (change < 546) {
+          change = 0 // Signal that there is no change
+        }
+        const fee = peerTotalSats - change
+        console.log(`Peer ${i} has total sats of ${peerTotalSats}, paying a tx fee of ${fee}, and getting ${change} sats in change.`)
+
+        changeAddrs.push({
+          changeAddr: thisPeer.changeAddr,
+          changeSats: change
+        })
+      }
+
+      // Add this nodes own UTXOs to the list
+      for (let i = 0; i < myUtxos.length; i++) {
+        utxos = utxos.concat(myUtxos[i].bchUtxos)
+      }
+
+      // Calculate the change going to this wallet.
+      let myChange = totalSats - satsRequired - Math.floor(2000 * Math.random())
+      if (myChange < 546) {
+        myChange = 0
+      }
+
+      // Add this nodes output and change addr
+      outputAddrs.push(outputAddr)
+      changeAddrs.push({
+        changeAddr,
+        changeSats: myChange
+      })
+
+      const { hex, txObj } = this.adapters.coinjoin.createTransaction({
+        utxos,
+        outputAddrs,
+        changeAddrs,
+        satsRequired
+      })
+      console.log('hex: ', hex)
+
+      this.txObj = txObj
+
+      return hex
+    } catch (err) {
+      console.error('Error in buildCoinJoinTx()')
+      throw err
+    }
+  }
+
   // This function is called after peers have coordinated to share UTXOs and
   // generate an unsigned CoinJoin TX. This function calls the JSON RPC endpoint
   // for each peer to pass the unsigned TX and collect a partially signed TX.
@@ -493,89 +627,6 @@ class ColabCoinJoin {
     }
   }
 
-  // This function compiles all peer data into an unsigned CoinJoin transaction.
-  async buildCoinJoinTx (inObj = {}) {
-    try {
-      console.log(`buildCoinJoinTx() inObj: ${JSON.stringify(inObj, null, 2)}`)
-
-      const { peerCoinJoinData, satsRequired } = inObj
-
-      // Get the state for this wallet. This wallet state is set in the
-      // startCoinJoin() function.
-      const totalSats = this.maxSatsToCoinJoin
-      const myUtxos = this.utxos
-      console.log('totalSats: ', totalSats)
-      console.log(`myUtxos: ${JSON.stringify(myUtxos, null, 2)}`)
-
-      const outputAddr = this.outputAddr
-      const changeAddr = this.changeAddr
-
-      // Combine all the peer UTXOs, output addresses, and change addresses
-      // into a single array
-      let utxos = []
-      const outputAddrs = []
-      const changeAddrs = []
-      for (let i = 0; i < peerCoinJoinData.length; i++) {
-        const thisPeer = peerCoinJoinData[i]
-        console.log(`thisPeer: ${JSON.stringify(thisPeer, null, 2)}`)
-
-        utxos = utxos.concat(thisPeer.coinjoinUtxos)
-
-        outputAddrs.push(thisPeer.outputAddr)
-
-        // Calculate the change for this peer
-        let peerTotalSats = 0
-        thisPeer.coinjoinUtxos.map(x => { peerTotalSats += x.satoshis; return false })
-        // Add a little bit of randomness by charging a random amount between
-        // 546 to 2000 sats for a tx fee
-        let change = peerTotalSats - satsRequired - 5000 - Math.floor(2000 * Math.random())
-        if (change < 546) {
-          change = 0 // Signal that there is no change
-        }
-        const fee = peerTotalSats - change
-        console.log(`Peer ${i} has total sats of ${peerTotalSats}, paying a tx fee of ${fee}, and getting ${change} sats in change.`)
-
-        changeAddrs.push({
-          changeAddr: thisPeer.changeAddr,
-          changeSats: change
-        })
-      }
-
-      // Add this nodes own UTXOs to the list
-      for (let i = 0; i < myUtxos.length; i++) {
-        utxos = utxos.concat(myUtxos[i].bchUtxos)
-      }
-
-      // Calculate the change going to this wallet.
-      let myChange = totalSats - satsRequired - Math.floor(2000 * Math.random())
-      if (myChange < 546) {
-        myChange = 0
-      }
-
-      // Add this nodes output and change addr
-      outputAddrs.push(outputAddr)
-      changeAddrs.push({
-        changeAddr,
-        changeSats: myChange
-      })
-
-      const { hex, txObj } = this.adapters.coinjoin.createTransaction({
-        utxos,
-        outputAddrs,
-        changeAddrs,
-        satsRequired
-      })
-      console.log('hex: ', hex)
-
-      this.txObj = txObj
-
-      return hex
-    } catch (err) {
-      console.error('Error in buildCoinJoinTx()')
-      throw err
-    }
-  }
-
   // Returns a promise that resolves to data when the RPC response is recieved.
   async waitForRPCResponse (rpcId) {
     try {
@@ -649,75 +700,6 @@ class ColabCoinJoin {
 
   sleep (ms) {
     return new Promise(resolve => setTimeout(resolve, ms))
-  }
-
-  // This is a JSON RPC handler that is called when another peer tries to initiate
-  // a CoinJoin transaction with this node.
-  async handleInitRequest (rpcData) {
-    try {
-      console.log(`handleInitRequest() started with this rpcData: ${JSON.stringify(rpcData, null, 2)}`)
-
-      const { msgType, uuid, requiredSats, endpoint } = rpcData.payload.params
-      console.log(`msgType: ${msgType}`)
-      console.log(`uuid: ${uuid}`)
-      console.log(`requiredSats: ${requiredSats}`)
-      console.log(`endpoint: ${endpoint}`)
-      // UUID is the CoinJoin UUID that is used in the response to the initator.
-
-      const potentialCoordinator = rpcData.from
-
-      // console.log('mnemonic: ', this.mnemonic)
-
-      // Generate the wallet object
-      // let walletObj = await this.hdWallet.createWallet.generateWalletObj({ mnemonic: this.mnemonic })
-
-      // walletObj = await this.hdWallet.updateBalance.updateWallet(walletObj)
-      // console.log('walletUtxoData: ', JSON.stringify(walletObj, null, 2))
-
-      const coinjoinUtxos = this.hdWallet.utxos.selectCoinJoinUtxos(requiredSats, this.utxos)
-      console.log('coinjoinUtxos: ', JSON.stringify(coinjoinUtxos, null, 2))
-
-      // const coinjoinUtxos = this.utxos
-
-      // Sum the total sats from all selected UTXOs
-      let totalSats = 0
-      coinjoinUtxos.map(x => { totalSats += x.satoshis; return false })
-
-      // If the UTXOs do not total up to required amount, reject the petition
-      // because this node is not able to participate.
-      if (totalSats < requiredSats) {
-        return { success: false }
-      }
-
-      // Generate new output address
-      // let outputAddr = await this.hdWallet.util.generateAddress(walletObj, walletObj.nextAddress, 1)
-      // outputAddr = outputAddr[0]
-      // console.log('outputAddr: ', outputAddr)
-
-      const outputAddr = this.outputAddr
-
-      // Generate a change address
-      // let changeAddr = await this.hdWallet.util.generateAddress(walletObj, walletObj.nextAddress + 1, 1)
-      // changeAddr = changeAddr[0]
-      // console.log('changeAddr: ', changeAddr)
-      const changeAddr = this.changeAddr
-
-      // Compile an output object to return to the peer initiating the CoinJoin
-      const outObj = {
-        coinjoinUtxos,
-        outputAddr,
-        changeAddr,
-        success: true
-      }
-
-      // Update the state to reflect the coordinating peer
-      this.coordinator = potentialCoordinator
-
-      return outObj
-    } catch (err) {
-      console.error('Error in use-cases/colab-coinjoin.js/handleInitRequest(): ', err)
-      return { success: false }
-    }
   }
 
   // This function is called by a REST API, initiated by the wallet client. It

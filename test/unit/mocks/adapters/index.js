@@ -92,4 +92,8 @@ const localdb = {
   }
 }
 
-module.exports = { ipfs, localdb }
+const coinjoin = {
+  createTransaction: () => {}
+}
+
+module.exports = { ipfs, localdb, coinjoin }

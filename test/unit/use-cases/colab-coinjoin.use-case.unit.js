@@ -224,6 +224,66 @@ describe('#colab-coinjoin-use-case', () => {
     })
   })
 
+  describe('#handleInitRequest', () => {
+    it('should return UTXOs on init request', async () => {
+      // Mock dependencies and force desired code path
+      uut.utxos = coinjoinMocks.startCoinJoinInput01.bchUtxos
+
+      const result = await uut.handleInitRequest(coinjoinMocks.initRpcPayload01)
+      console.log('result: ', result)
+
+      // Assert that the returned object has the expected properties
+      assert.property(result, 'coinjoinUtxos')
+      assert.property(result, 'outputAddr')
+      assert.property(result, 'changeAddr')
+      assert.equal(result.success, true)
+    })
+
+    it('should return false if the peer does not have minimum number of sats', async () => {
+      // Mock dependencies and force desired code path
+      uut.utxos = []
+
+      const result = await uut.handleInitRequest(coinjoinMocks.initRpcPayload01)
+      // console.log('result: ', result)
+
+      assert.equal(result.success, false)
+    })
+
+    it('should return false on error', async () => {
+      const result = await uut.handleInitRequest()
+      // console.log('result: ', result)
+
+      assert.equal(result.success, false)
+    })
+  })
+
+  describe('#buildCoinJoinTx', () => {
+    it('should build a transaction from peer UTXO data', async () => {
+      // Mock dependencies and force desired code path
+      uut.utxos = coinjoinMocks.startCoinJoinInput01.bchUtxos
+      sandbox.stub(uut.adapters.coinjoin, 'createTransaction').returns({ hex: 'fake-hex', txObj: {} })
+
+      const result = await uut.buildCoinJoinTx(coinjoinMocks.preTxPeerData01)
+      // console.log('result: ', result)
+
+      // Assert the expected hex string is returned.
+      assert.equal(result, 'fake-hex')
+
+      // Assert that the uut.txObj state has been populated with an object
+      assert.isObject(uut.txObj)
+    })
+
+    it('should catch, report, and throw errors', async () => {
+      try {
+        await uut.buildCoinJoinTx()
+
+        assert.fail('Unexpected code path')
+      } catch (err) {
+        assert.include(err.message, 'Cannot read')
+      }
+    })
+  })
+
   describe('#createFullySignedTx', () => {
     it('should combine partially signed TXs into a fully-signed TX', () => {
       const inObj = {
