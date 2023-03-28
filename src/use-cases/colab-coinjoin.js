@@ -254,6 +254,122 @@ class ColabCoinJoin {
     }
   }
 
+  // This function is called by handleCoinJoinPubsub() when this node is actively
+  // looking to join a CoinJoin tx and enough acceptable participates have been
+  // found for this node to initiate a CoinJoin transaction.
+  // The node executing this code becomes the 'coordinating peer'
+  async initiateColabCoinJoin (peers) {
+    try {
+      console.log('----> This peer is now the coordinating peer <----')
+      console.log('initiateColabCoinJoin() with these peers: ', peers)
+
+      // Generate a UUID for organizing the the CoinJoin.
+      const newUuid = uuidv4()
+      console.log('newUuid: ', newUuid)
+
+      // Figure out the amount of BCH each participant should contribute. This
+      // is the smallest maxSats found in the group.
+      let satsRequired = 10000000
+      for (let i = 0; i < peers.length; i++) {
+        const thisPeer = peers[i]
+
+        if (thisPeer.maxSats < satsRequired) {
+          satsRequired = thisPeer.maxSats
+        }
+      }
+      console.log('satsRequired: ', satsRequired)
+
+      // Compile an object to send to each peer.
+      const rpcData = {
+        msgType: 'colab-coinjoin-init',
+        uuid: newUuid,
+        requiredSats: satsRequired,
+        endpoint: 'initiate'
+      }
+      console.log('rpcData: ', rpcData)
+
+      const rpcId = uuidv4()
+
+      // Generate a JSON RPC command.
+      const cmd = this.jsonrpc.request(rpcId, 'ccoinjoin', rpcData)
+      const cmdStr = JSON.stringify(cmd)
+      console.log('cmdStr: ', cmdStr)
+
+      // Get handles on parts of ipfs-coord library.
+      const ipfsCoord = this.adapters.ipfs.ipfsCoordAdapter.ipfsCoord
+      // const pubsubAdapter = ipfsCoord.adapters.pubsub
+      const thisNode = ipfsCoord.thisNode
+      // const encryptionAdapter = ipfsCoord.adapters.encryption
+
+      const peerCoinJoinData = []
+
+      // Send the init message to each peer.
+      for (let i = 0; i < peers.length; i++) {
+        const thisPeer = peers[i]
+
+        try {
+          // Send the RPC command to selected wallet service.
+          await ipfsCoord.useCases.peer.sendPrivateMessage(
+            thisPeer.ipfsId,
+            cmdStr,
+            thisNode
+          )
+        } catch (err) {
+          throw new Error(`Could not send message to ${thisPeer.ipfsId}, skipping.`)
+          // break
+
+          // Dev Note: The idea here is that if there is no connection data to send
+          // private messages to a peer in the group, then abort the CoinJoin
+          // init attempt. I think that's the best strategy for now.
+        }
+
+        console.log('Waiting for rpc data....')
+
+        // Wait for data to come back from the wallet service.
+        const data = await this.waitForRPCResponse(rpcId)
+        console.log('...returned rpc data: ', JSON.stringify(data, null, 2))
+
+        const message = data.message
+        console.log(`message: ${JSON.stringify(message, null, 2)}`)
+
+        // Exit if a peer is already occupied in another coinjoin session.
+        if (typeof (message) === 'string' && message.includes('already underway')) {
+          console.log('Peer is already in a CoinJoin. Skipping.')
+          return false
+        }
+
+        // Get the data from the peer needed to include them in the CoinJoin.
+        const { coinjoinUtxos, outputAddr, changeAddr } = message
+
+        // Add up the total sats in the peers UTXOs, make sure they meet or
+        // exceed the minimum sats required.
+        let totalSats = 0
+        coinjoinUtxos.map(x => { totalSats += x.value; return false })
+        if (totalSats < satsRequired) {
+          throw new Error(`Peer ${thisPeer.ipfsId} returned UTXOs that total to ${totalSats} sats, which is less than the required ${satsRequired} sats`)
+        }
+
+        // Add it to the peer data we already have.
+        thisPeer.coinjoinUtxos = coinjoinUtxos
+        thisPeer.outputAddr = outputAddr
+        thisPeer.changeAddr = changeAddr
+
+        peerCoinJoinData.push(thisPeer)
+      }
+
+      // console.log('peerCoinJoinData: ', JSON.stringify(peerCoinJoinData, null, 2))
+
+      const hex = await this.buildCoinJoinTx({ peerCoinJoinData, satsRequired })
+
+      const cjUuid = newUuid
+
+      return { hex, cjUuid }
+    } catch (err) {
+      console.error('Error in use-cases/colab-coinjoin.js initiateColabCoinJoin()')
+      throw err
+    }
+  }
+
   // This function is called after peers have coordinated to share UTXOs and
   // generate an unsigned CoinJoin TX. This function calls the JSON RPC endpoint
   // for each peer to pass the unsigned TX and collect a partially signed TX.
@@ -374,122 +490,6 @@ class ColabCoinJoin {
     } catch (err) {
       console.error('Error in use-cases/colab-coinjoin.js/signTx(): ', err)
       return { success: false }
-    }
-  }
-
-  // This function is called by handleCoinJoinPubsub() when this node is actively
-  // looking to join a CoinJoin tx and enough acceptable participates have been
-  // found for this node to initiate a CoinJoin transaction.
-  // The node executing this code becomes the 'coordinating peer'
-  async initiateColabCoinJoin (peers) {
-    try {
-      console.log('----> This peer is now the coordinating peer <----')
-      console.log('initiateColabCoinJoin() with these peers: ', peers)
-
-      // Generate a UUID for organizing the the CoinJoin.
-      const newUuid = uuidv4()
-      console.log('newUuid: ', newUuid)
-
-      // Figure out the amount of BCH each participant should contribute. This
-      // is the smallest maxSats found in the group.
-      let satsRequired = 10000000
-      for (let i = 0; i < peers.length; i++) {
-        const thisPeer = peers[i]
-
-        if (thisPeer.maxSats < satsRequired) {
-          satsRequired = thisPeer.maxSats
-        }
-      }
-      console.log('satsRequired: ', satsRequired)
-
-      // Compile an object to send to each peer.
-      const rpcData = {
-        msgType: 'colab-coinjoin-init',
-        uuid: newUuid,
-        requiredSats: satsRequired,
-        endpoint: 'initiate'
-      }
-      console.log('rpcData: ', rpcData)
-
-      const rpcId = uuidv4()
-
-      // Generate a JSON RPC command.
-      const cmd = this.jsonrpc.request(rpcId, 'ccoinjoin', rpcData)
-      const cmdStr = JSON.stringify(cmd)
-      console.log('cmdStr: ', cmdStr)
-
-      // Get handles on parts of ipfs-coord library.
-      const ipfsCoord = this.adapters.ipfs.ipfsCoordAdapter.ipfsCoord
-      // const pubsubAdapter = ipfsCoord.adapters.pubsub
-      const thisNode = ipfsCoord.thisNode
-      // const encryptionAdapter = ipfsCoord.adapters.encryption
-
-      const peerCoinJoinData = []
-
-      // Send the init message to each peer.
-      for (let i = 0; i < peers.length; i++) {
-        const thisPeer = peers[i]
-
-        try {
-          // Send the RPC command to selected wallet service.
-          await ipfsCoord.useCases.peer.sendPrivateMessage(
-            thisPeer.ipfsId,
-            cmdStr,
-            thisNode
-          )
-        } catch (err) {
-          console.log(`Could not find data for peer ${thisPeer.ipfsId}, skipping.`)
-          break
-
-          // Dev Note: The idea here is that if there is no connection data to send
-          // private messages to a peer in the group, then abort the CoinJoin
-          // init attempt. I think that's the best strategy for now.
-        }
-
-        console.log('Waiting for rpc data....')
-
-        // Wait for data to come back from the wallet service.
-        const data = await this.waitForRPCResponse(rpcId)
-        console.log('...returned rpc data: ', JSON.stringify(data, null, 2))
-
-        const message = data.message
-        console.log(`message: ${JSON.stringify(message, null, 2)}`)
-
-        // Exit if a peer is already occupied in another coinjoin session.
-        if (typeof (message) === 'string' && message.includes('already underway')) {
-          console.log('Peer is already in a CoinJoin. Skipping.')
-          return false
-        }
-
-        // Get the data from the peer needed to include them in the CoinJoin.
-        const { coinjoinUtxos, outputAddr, changeAddr } = message
-
-        // Add up the total sats in the peers UTXOs, make sure they meet or
-        // exceed the minimum sats required.
-        let totalSats = 0
-        coinjoinUtxos.map(x => { totalSats += x.value; return false })
-        if (totalSats < satsRequired) {
-          throw new Error(`Peer ${thisPeer.ipfsId} returned UTXOs that total to ${totalSats} sats, which is less than the required ${satsRequired} sats`)
-        }
-
-        // Add it to the peer data we already have.
-        thisPeer.coinjoinUtxos = coinjoinUtxos
-        thisPeer.outputAddr = outputAddr
-        thisPeer.changeAddr = changeAddr
-
-        peerCoinJoinData.push(thisPeer)
-      }
-
-      // console.log('peerCoinJoinData: ', JSON.stringify(peerCoinJoinData, null, 2))
-
-      const hex = await this.buildCoinJoinTx({ peerCoinJoinData, satsRequired })
-
-      const cjUuid = newUuid
-
-      return { hex, cjUuid }
-    } catch (err) {
-      console.error('Error in use-cases/colab-coinjoin.js initiateColabCoinJoin()')
-      throw err
     }
   }
 

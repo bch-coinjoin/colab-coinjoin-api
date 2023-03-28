@@ -300,6 +300,66 @@ const announceObj02 = {
   }
 }
 
+const peerUtxos01 = {
+  "success": true,
+  "status": 200,
+  "message": {
+    "coinjoinUtxos": [
+      {
+        "height": 785736,
+        "tx_hash": "9866faa00ce60a82a058a579d70a155287c058bbe396d399e6956687da3b0da2",
+        "tx_pos": 0,
+        "value": 29999,
+        "txid": "9866faa00ce60a82a058a579d70a155287c058bbe396d399e6956687da3b0da2",
+        "vout": 0,
+        "address": "bitcoincash:qqjfpjgnzaqwhxsvtp0x0vxa8gzplmwgrqjg23lusc",
+        "isSlp": false,
+        "satoshis": 29999,
+        "hdIndex": 11
+      },
+      {
+        "height": 785736,
+        "tx_hash": "b6be4ea9c429d2b501914179c3288cea4d90c0b73465603c1abe1b8e857e52d2",
+        "tx_pos": 0,
+        "value": 40000,
+        "txid": "b6be4ea9c429d2b501914179c3288cea4d90c0b73465603c1abe1b8e857e52d2",
+        "vout": 0,
+        "address": "bitcoincash:qqjfpjgnzaqwhxsvtp0x0vxa8gzplmwgrqjg23lusc",
+        "isSlp": false,
+        "satoshis": 40000,
+        "hdIndex": 11
+      },
+      {
+        "height": 785736,
+        "tx_hash": "f29fc141851db1eb4a6571827e8a3b3421c167c35ac071a21a62d20c24c98ae7",
+        "tx_pos": 0,
+        "value": 40000,
+        "txid": "f29fc141851db1eb4a6571827e8a3b3421c167c35ac071a21a62d20c24c98ae7",
+        "vout": 0,
+        "address": "bitcoincash:qpdhzmzqazze6n857q2zsqrjmuzdzkz3z5hmpf2lh2",
+        "isSlp": false,
+        "satoshis": 40000,
+        "hdIndex": 15
+      },
+      {
+        "height": 785736,
+        "tx_hash": "f29fc141851db1eb4a6571827e8a3b3421c167c35ac071a21a62d20c24c98ae7",
+        "tx_pos": 1,
+        "value": 38301,
+        "txid": "f29fc141851db1eb4a6571827e8a3b3421c167c35ac071a21a62d20c24c98ae7",
+        "vout": 1,
+        "address": "bitcoincash:qz0nr3383stpddxwpz5vxxpd2ysnl3dzsgte07rtan",
+        "isSlp": false,
+        "satoshis": 38301,
+        "hdIndex": 16
+      }
+    ],
+    "outputAddr": "bitcoincash:qz0kwhkusfq2mrwddux5q9uxd6g8fer80ve22huh3k",
+    "changeAddr": "bitcoincash:qp2wzc2vp687ksf4z0d0th8vutcn98w5j5an5r2ca2",
+    "success": true
+  },
+  "endpoint": "initiate"
+}
 
 
 module.exports = {
@@ -309,5 +369,6 @@ module.exports = {
   txObj01,
   startCoinJoinInput01,
   announceObj01,
-  announceObj02
+  announceObj02,
+  peerUtxos01
 }

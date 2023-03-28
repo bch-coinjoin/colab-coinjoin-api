@@ -5,20 +5,24 @@
 // Public npm libraries
 const assert = require('chai').assert
 const sinon = require('sinon')
+const cloneDeep = require('lodash.clonedeep')
 
 // Unit under test (uut)
 const ColabCoinJoinLib = require('../../../src/use-cases/colab-coinjoin')
 const adapters = require('../mocks/adapters')
-const coinjoinMocks = require('../mocks/use-cases/colab-coinjoin-mocks')
+const coinjoinMocksLib = require('../mocks/use-cases/colab-coinjoin-mocks')
 
 describe('#colab-coinjoin-use-case', () => {
   let uut
   let sandbox
+  let coinjoinMocks
 
   beforeEach(() => {
     sandbox = sinon.createSandbox()
 
     uut = new ColabCoinJoinLib({ adapters })
+
+    coinjoinMocks = cloneDeep(coinjoinMocksLib)
   })
 
   afterEach(() => sandbox.restore())
@@ -157,6 +161,66 @@ describe('#colab-coinjoin-use-case', () => {
       const result = await uut.handleCoinJoinPubsub()
 
       assert.equal(result, false)
+    })
+  })
+
+  describe('#initiateColabCoinJoin', () => {
+    beforeEach(() => {
+      coinjoinMocks = cloneDeep(coinjoinMocksLib)
+    })
+
+    it('should throw an error if peer does not have enough sats', async () => {
+      try {
+        // Mock dependencies and force desired code path
+        sandbox.stub(uut, 'waitForRPCResponse').resolves(coinjoinMocks.peerUtxos01)
+        sandbox.stub(uut, 'buildCoinJoinTx').resolves('fake-hex')
+
+        await uut.initiateColabCoinJoin(coinjoinMocks.peers01)
+
+        assert.fail('Unexpected result')
+      } catch (err) {
+        assert.include(err.message, 'which is less than the required')
+      }
+    })
+
+    it('should throw an error if peer communication fails', async () => {
+      try {
+        // Mock dependencies and force desired code path
+        sandbox.stub(uut.adapters.ipfs.ipfsCoordAdapter.ipfsCoord.useCases.peer, 'sendPrivateMessage').rejects(new Error('RPC error'))
+        // sandbox.stub(uut, 'waitForRPCResponse').resolves(coinjoinMocks.peerUtxos01)
+        // sandbox.stub(uut, 'buildCoinJoinTx').resolves('fake-hex')
+
+        await uut.initiateColabCoinJoin(coinjoinMocks.peers01)
+
+        assert.fail('Unexpected result')
+      } catch (err) {
+        assert.include(err.message, 'Could not send message to')
+      }
+    })
+
+    it('should return false if peer is already in a CoinJoin', async () => {
+      // Mock dependencies and force desired code path
+      coinjoinMocks.peerUtxos01.message = 'coinjoin already underway'
+      sandbox.stub(uut, 'waitForRPCResponse').resolves(coinjoinMocks.peerUtxos01)
+      sandbox.stub(uut, 'buildCoinJoinTx').resolves('fake-hex')
+
+      const result = await uut.initiateColabCoinJoin(coinjoinMocks.peers01)
+
+      assert.equal(result, false)
+    })
+
+    it('should initiate a CoinJoin with peer', async () => {
+      // Mock dependencies and force desired code path
+      // sandbox.stub(uut.adapters.ipfs.ipfsCoordAdapter.ipfsCoord.useCases.peer,'sendPrivateMessage').resolves()
+      coinjoinMocks.peerUtxos01.message.coinjoinUtxos[0].value = 200000
+      sandbox.stub(uut, 'waitForRPCResponse').resolves(coinjoinMocks.peerUtxos01)
+      sandbox.stub(uut, 'buildCoinJoinTx').resolves('fake-hex')
+
+      const result = await uut.initiateColabCoinJoin(coinjoinMocks.peers01)
+      console.log('result: ', result)
+
+      assert.equal(result.hex, 'fake-hex')
+      assert.property(result, 'cjUuid')
     })
   })
 
