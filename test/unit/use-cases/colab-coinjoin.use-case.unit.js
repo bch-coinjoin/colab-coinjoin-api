@@ -103,6 +103,63 @@ describe('#colab-coinjoin-use-case', () => {
     })
   })
 
+  describe('#handleCoinJoinPubsub', () => {
+    it('should add new peer to peers array', async () => {
+      const result = await uut.handleCoinJoinPubsub(coinjoinMocks.announceObj01)
+      console.log('result: ', result)
+
+      assert.equal(result, 1)
+
+      // There should be a new peer in the array.
+      assert.equal(uut.peers.length, 1)
+    })
+
+    it('should update existing peer in the peers array', async () => {
+      // Mock dependencies and force desired code path
+      uut.peers.push(coinjoinMocks.announceObj01.data)
+
+      const result = await uut.handleCoinJoinPubsub(coinjoinMocks.announceObj01)
+      // console.log('result: ', result)
+
+      assert.equal(result, 1)
+
+      // console.log('uut.peers: ', JSON.stringify(uut.peers, null, 2))
+
+      // There should be a new peer in the array.
+      assert.equal(uut.peers.length, 1)
+    })
+
+    it('should exit if there are not enough peers', async () => {
+      // Mock dependencies and force desired code path
+      uut.nodeState = 'soliciting'
+
+      const result = await uut.handleCoinJoinPubsub(coinjoinMocks.announceObj01)
+      // console.log('result: ', result)
+
+      assert.equal(result, 2)
+    })
+
+    it('should initiate a CoinJoin if there are enough players', async () => {
+      // Mock dependencies and force desired code path
+      uut.nodeState = 'soliciting'
+      uut.peers.push(coinjoinMocks.announceObj01.data)
+      uut.maxSatsToCoinJoin = 200000
+      sandbox.stub(uut, 'initiateColabCoinJoin').resolves({ hex: 'fake-hex', cjUuid: 'fake-uuid' })
+      sandbox.stub(uut, 'collectSignatures').resolves()
+
+      const result = await uut.handleCoinJoinPubsub(coinjoinMocks.announceObj02)
+      // console.log('result: ', result)
+
+      assert.equal(result, 3)
+    })
+
+    it('should return false on error', async () => {
+      const result = await uut.handleCoinJoinPubsub()
+
+      assert.equal(result, false)
+    })
+  })
+
   describe('#createFullySignedTx', () => {
     it('should combine partially signed TXs into a fully-signed TX', () => {
       const inObj = {

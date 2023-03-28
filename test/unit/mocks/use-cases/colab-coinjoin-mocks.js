@@ -270,11 +270,44 @@ const startCoinJoinInput01 = {
   "changeAddr": "bitcoincash:qr0fe9sg5gxr42x5ehhjl976u8gnjx5ypvxzgd2rns"
 }
 
+const announceObj01 = {
+  from: '12D3KooWP66kG23r7udETp34xbHpZf6bZWTj93vt9dsrS6X11r8D',
+  channel: 'bch-coinjoin-001',
+  data: {
+    ipfsId: '12D3KooWP66kG23r7udETp34xbHpZf6bZWTj93vt9dsrS6X11r8D',
+    ipfsMultiaddrs: [Array],
+    bchAddr: 'bitcoincash:qpuarugpyvve7m2tpz0xpssnszt29ymlnuc8rfy5qx',
+    slpAddr: 'simpleledger:qpuarugpyvve7m2tpz0xpssnszt29ymlnu5ugj357c',
+    publicKey: '03ae5aa8b808cccb18c64dff31e730a87f511f7ec5935269f0ffeb61b304517b43',
+    type: 'node.js',
+    minPlayers: 2,
+    maxSats: 148300
+  }
+}
+
+const announceObj02 = {
+  from: '12D3KooWJeDNX2sqoLaeAk9mwZNBoDdeddtcK23U77aBVbiecXVT',
+  channel: 'bch-coinjoin-001',
+  data: {
+    ipfsId: '12D3KooWJeDNX2sqoLaeAk9mwZNBoDdeddtcK23U77aBVbiecXVT',
+    ipfsMultiaddrs: [Array],
+    bchAddr: 'bitcoincash:qrkql08gssv9dnhe5dqcgert6nac0xtsws5lpnunaq',
+    slpAddr: 'simpleledger:qrkql08gssv9dnhe5dqcgert6nac0xtswscy2gfnr7',
+    publicKey: '02145bc1e4c473b5703e2882f66f3b1ce26b6be97c71bd2d950cdf4063fc77c0ae',
+    type: 'node.js',
+    minPlayers: 2,
+    maxSats: 10000
+  }
+}
+
+
 
 module.exports = {
   unsignedTxData01,
   peers01,
   psTxs01,
   txObj01,
-  startCoinJoinInput01
+  startCoinJoinInput01,
+  announceObj01,
+  announceObj02
 }

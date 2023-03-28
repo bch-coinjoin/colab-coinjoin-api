@@ -179,14 +179,14 @@ class ColabCoinJoin {
   // will read the message and update the state of the peers array.
   async handleCoinJoinPubsub (announceObj) {
     try {
-      console.log('handleCoinJoinPubsub() announceObj: ', announceObj)
+      // console.log('handleCoinJoinPubsub() announceObj: ', announceObj)
 
       const peer = this.cjPeers.validate(announceObj.data)
-      console.log(`peer: ${JSON.stringify(peer, null, 2)}`)
+      // console.log(`peer: ${JSON.stringify(peer, null, 2)}`)
 
       // Try to find existing peer in the array
       const existingPeerIndex = this.peers.findIndex(x => x.ipfsId === peer.ipfsId)
-      console.log('existingPeerIndex: ', existingPeerIndex)
+      // console.log('existingPeerIndex: ', existingPeerIndex)
 
       if (existingPeerIndex < 0) {
         // Add new peer to the array.
@@ -196,15 +196,15 @@ class ColabCoinJoin {
         this.peers[existingPeerIndex] = peer
       }
 
-      console.log('this.peers: ', this.peers)
-      console.log('this.nodeState: ', this.nodeState)
+      // console.log('this.peers: ', this.peers)
+      // console.log('this.nodeState: ', this.nodeState)
 
       // If this node is actively soliciting other nodes, check
       // to see if enough of the right peers exist to initiate a CoinJoin TX.
       if (this.nodeState === 'soliciting') {
         // If the number of available peers is greater than the minimum.
         if (this.peers.length >= MIN_PLAYERS - 1) {
-          console.log('...looking for acceptable peers...')
+          // console.log('...looking for acceptable peers...')
           const acceptablePeers = []
 
           // Loop through all the known peers and generate an array peers that
@@ -218,7 +218,7 @@ class ColabCoinJoin {
               acceptablePeers.push(thisPeer)
             }
           }
-          console.log(`This acceptable peers found: ${JSON.stringify(acceptablePeers, null, 2)}`)
+          // console.log(`This acceptable peers found: ${JSON.stringify(acceptablePeers, null, 2)}`)
 
           // If enough acceptable peers have been discovered, then initiate
           // a CoinJoin transaction.
@@ -230,16 +230,22 @@ class ColabCoinJoin {
 
             // Coordinate with peers to generate an unsigned CoinJoin TX
             const { hex, cjUuid } = await this.initiateColabCoinJoin(acceptablePeers)
-            console.log('Ready to pass unsigned CoinJoin TX to each participant to collect signatures.')
-            console.log('hex: ', hex)
+            // console.log('Ready to pass unsigned CoinJoin TX to each participant to collect signatures.')
+            // console.log('hex: ', hex)
 
             const unsignedHex = hex
             const cjPeers = acceptablePeers
-            const signedHex = await this.collectSignatures({ cjPeers, unsignedHex, cjUuid })
-            console.log('signedHex: ', signedHex)
+            await this.collectSignatures({ cjPeers, unsignedHex, cjUuid })
+            // console.log('signedHex: ', signedHex)
+
+            return 3
           }
         }
+
+        return 2
       }
+
+      return 1
     } catch (err) {
       console.error('Error in handleCoinJoinPubsub(): ', err)
 
