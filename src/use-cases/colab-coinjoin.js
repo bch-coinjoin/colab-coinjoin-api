@@ -32,6 +32,7 @@ class ColabCoinJoin {
     this.cjPeers = new CJPeers()
     this.hdWallet = new HdWallet({ restURL: 'https://bch-consumer-anacortes-wa-usa.fullstackcash.nl' })
     this.jsonrpc = jsonrpc
+    this.BchWallet = BchWallet
     // this.wallet = new BchWallet(undefined, { interface: 'consumer-api' })
 
     // Bind the 'this' object to subfunctions in this library.
@@ -838,7 +839,7 @@ class ColabCoinJoin {
 
   // Broadcast a hexidecimal representation of a transaction to the BCH network.
   async broadcastTx (txHex) {
-    const wallet = new BchWallet(undefined, { interface: 'consumer-api' })
+    const wallet = new this.BchWallet(undefined, { interface: 'consumer-api' })
     const txid = await wallet.broadcast(txHex)
     console.log(`CoinJoin TX broadcast with this txid: ${txid}`)
 
@@ -913,6 +914,8 @@ class ColabCoinJoin {
     } catch (err) {
       console.error('Error in rest-api.js/rpcHandler(): ', err)
       // Do not throw error. This is a top-level function.
+
+      return false
     }
   }
 

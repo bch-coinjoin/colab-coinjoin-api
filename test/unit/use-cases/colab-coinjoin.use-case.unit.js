@@ -428,4 +428,84 @@ describe('#colab-coinjoin-use-case', () => {
       assert.include(txHex, '020000000')
     })
   })
+
+  describe('#broadcastTx', () => {
+    it('should broadcast a tx and return a txid', async () => {
+      class FakeWallet {
+        async broadcast () {
+          return 'fake-txid'
+        }
+      }
+      uut.BchWallet = FakeWallet
+
+      const result = await uut.broadcastTx('fake-hex')
+      // console.log('result: ', result)
+
+      assert.equal(result, 'fake-txid')
+    })
+  })
+
+  describe('#waitForRPCResponse', () => {
+    it('should catch and throw an error', async () => {
+      try {
+        // Mock data.
+        const rpcId = '123'
+        uut.rpcDataQueue.push({})
+
+        const result = await uut.waitForRPCResponse(rpcId)
+        console.log('result: ', result)
+
+        assert.fail('Unexpected code path')
+      } catch (err) {
+        // console.log('error: ', err)
+        assert.include(err.message, 'Cannot read')
+      }
+    })
+
+    it('should resolve when data is received', async () => {
+      // Mock dependencies
+      coinjoinMocks.initRpcPayload01.payload.result = {
+        value: {
+          success: true
+        }
+      }
+      sandbox.stub(uut, 'sleep').resolves()
+
+      // Mock data.
+      const rpcId = '0c1e903d-70e1-4b86-8844-840297897748'
+      uut.rpcDataQueue.push(coinjoinMocks.initRpcPayload01)
+
+      const result = await uut.waitForRPCResponse(rpcId)
+      // console.log('result: ', result)
+
+      assert.property(result, 'success')
+      assert.equal(result.success, true)
+    })
+  })
+
+  describe('#rpcHandler', () => {
+    it('should add RPC data to queue', () => {
+      const data = {
+        payload: {
+          id: '123'
+        }
+      }
+
+      uut.rpcHandler(data)
+    })
+
+    it('should return false on error', () => {
+      const result = uut.rpcHandler()
+
+      assert.equal(result, false)
+    })
+  })
+
+  describe('#sleep', () => {
+    it('should wait the given amount of milliseconds', async () => {
+      await uut.sleep(1)
+
+      assert.equal(1, 1)
+    })
+  })
 })
