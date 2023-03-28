@@ -431,7 +431,7 @@ class ColabCoinJoin {
 
       // Get the state for this wallet. This wallet state is set in the
       // startCoinJoin() function.
-      const totalSats = this.maxSatsToCoinJoin
+      const totalSats = this.maxSatsToCoinJoin + 1000
       const myUtxos = this.utxos
       console.log('totalSats: ', totalSats)
       console.log(`myUtxos: ${JSON.stringify(myUtxos, null, 2)}`)
