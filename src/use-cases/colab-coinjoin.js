@@ -136,16 +136,12 @@ class ColabCoinJoin {
   // passes in the UTXOs for a wallet. This changes the state of the node to
   // 'soliciting', where it begins to actively solicit other nodes to join it
   // in a CoinJoin transaction to consolidate UTXOs.
-  async startCoinJoin (inObj) {
+  startCoinJoin (inObj) {
     try {
-      console.log(`startCoinJoin() input object: ${JSON.stringify(inObj, null, 2)}`)
+      // console.log(`startCoinJoin() input object: ${JSON.stringify(inObj, null, 2)}`)
 
       // const { bchUtxos, mnemonic } = inObj
       const { bchUtxos, outputAddr, changeAddr } = inObj
-
-      // Save the mnemonic to the state of this library, so that it can be used
-      // in downstream functions of the CoinJoin workflow
-      // this.mnemonic = mnemonic
 
       // Count the total number of sats in all UTXOs
       let totalSats = 0

@@ -43,7 +43,7 @@ class WalletRESTControllerLib {
       const inObj = ctx.request.body
       console.log(`startCoinJoin REST API handler, body: ${JSON.stringify(inObj, null, 2)}`)
 
-      const success = await this.useCases.coinjoin.startCoinJoin(inObj)
+      const success = this.useCases.coinjoin.startCoinJoin(inObj)
       // const success = true
 
       ctx.body = { success }

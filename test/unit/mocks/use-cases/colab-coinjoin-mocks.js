@@ -205,9 +205,76 @@ txObj01 = {
   "satsRequired": 149540
 }
 
+const startCoinJoinInput01 = {
+  "bchUtxos": [
+    {
+      "bchUtxos": [
+        {
+          "height": 785736,
+          "tx_hash": "737df85d1c49f8684d331e41af8f1445095c4155a4b63ae5ab2a749666ea8064",
+          "tx_pos": 2,
+          "value": 224387,
+          "txid": "737df85d1c49f8684d331e41af8f1445095c4155a4b63ae5ab2a749666ea8064",
+          "vout": 2,
+          "address": "bitcoincash:qzfzjhzvv2dhlyk5k9fdmk00yatz5uv0jyxen0dj6s",
+          "isSlp": false
+        }
+      ],
+      "address": "bitcoincash:qzfzjhzvv2dhlyk5k9fdmk00yatz5uv0jyxen0dj6s",
+      "hdIndex": 2
+    },
+    {
+      "bchUtxos": [
+        {
+          "height": 785736,
+          "tx_hash": "03c576c2453e460ffb09958e60bca7cbb73cf786756158943e9c21d0166919e8",
+          "tx_pos": 0,
+          "value": 20000,
+          "txid": "03c576c2453e460ffb09958e60bca7cbb73cf786756158943e9c21d0166919e8",
+          "vout": 0,
+          "address": "bitcoincash:qpjgv9g4cd8jcmrsxqtlctlqnex5k9pcqu0asral5d",
+          "isSlp": false
+        },
+        {
+          "height": 785736,
+          "tx_hash": "849130c386aeb9669c27d09ed9361854c76131f9516b1050c80e258da05b5681",
+          "tx_pos": 0,
+          "value": 10000,
+          "txid": "849130c386aeb9669c27d09ed9361854c76131f9516b1050c80e258da05b5681",
+          "vout": 0,
+          "address": "bitcoincash:qpjgv9g4cd8jcmrsxqtlctlqnex5k9pcqu0asral5d",
+          "isSlp": false
+        }
+      ],
+      "address": "bitcoincash:qpjgv9g4cd8jcmrsxqtlctlqnex5k9pcqu0asral5d",
+      "hdIndex": 8
+    },
+    {
+      "bchUtxos": [
+        {
+          "height": 785736,
+          "tx_hash": "03c576c2453e460ffb09958e60bca7cbb73cf786756158943e9c21d0166919e8",
+          "tx_pos": 1,
+          "value": 118548,
+          "txid": "03c576c2453e460ffb09958e60bca7cbb73cf786756158943e9c21d0166919e8",
+          "vout": 1,
+          "address": "bitcoincash:qqksldgl3lmkn7edwxjphftq42ghwn84qyruv28ugh",
+          "isSlp": false
+        }
+      ],
+      "address": "bitcoincash:qqksldgl3lmkn7edwxjphftq42ghwn84qyruv28ugh",
+      "hdIndex": 10
+    }
+  ],
+  "outputAddr": "bitcoincash:qqpgft0p0kvl76fjdjph32nzgs98r0ma6qhjmrue6q",
+  "changeAddr": "bitcoincash:qr0fe9sg5gxr42x5ehhjl976u8gnjx5ypvxzgd2rns"
+}
+
+
 module.exports = {
   unsignedTxData01,
   peers01,
   psTxs01,
-  txObj01
+  txObj01,
+  startCoinJoinInput01
 }

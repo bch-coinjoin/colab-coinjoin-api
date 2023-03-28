@@ -32,8 +32,19 @@ class IpfsCoordAdapter {
               }
             }
           },
-          subscribeToPubsubChannel: async () => {}
+          subscribeToPubsubChannel: async () => {},
+          messaging: {
+            publishToPubsubChannel: async () => {}
+          }
         }
+      },
+      thisNode: {
+        ipfsId: 'fake-ipfs-id',
+        ipfsMultiaddrs: ['fake-multiaddr'],
+        bchAddr: 'fake-bch-addr',
+        slpAddr: 'fake-slp-addr',
+        publicKey: 'fake-public-key',
+        type: 'external'
       }
     }
   }

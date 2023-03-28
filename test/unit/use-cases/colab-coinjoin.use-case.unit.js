@@ -59,6 +59,50 @@ describe('#colab-coinjoin-use-case', () => {
     })
   })
 
+  describe('#cjAnnounce', () => {
+    it('should announce itself on the CoinJoin pubsub channel', async () => {
+      // Mock dependencies and force desired code path
+      // sandbox.stub(uut.adapters.ipfs.ipfsCoordAdapter.ipfsCoord.adapters.pubsub.messaging, 'unsubscribe').rejects(new Error('test error'))
+
+      const result = await uut.cjAnnounce()
+
+      assert.equal(result, true)
+    })
+
+    it('should catch, report, and throw errors', async () => {
+      try {
+        // Force an error
+        sandbox.stub(uut.adapters.ipfs.ipfsCoordAdapter.ipfsCoord.adapters.pubsub.messaging, 'publishToPubsubChannel').rejects(new Error('test error'))
+
+        await uut.cjAnnounce()
+
+        assert.fail('Unexpected code path')
+      } catch (err) {
+        assert.include(err.message, 'test error')
+      }
+    })
+  })
+
+  describe('#startCoinJoin', () => {
+    it('should update the nodes state', () => {
+      const result = uut.startCoinJoin(coinjoinMocks.startCoinJoinInput01)
+
+      assert.equal(result, true)
+
+      assert.equal(uut.nodeState, 'soliciting')
+    })
+
+    it('should catch, report, and throw errors', async () => {
+      try {
+        uut.startCoinJoin()
+
+        assert.fail('Unexpected code path')
+      } catch (err) {
+        assert.include(err.message, 'Cannot destructure')
+      }
+    })
+  })
+
   describe('#createFullySignedTx', () => {
     it('should combine partially signed TXs into a fully-signed TX', () => {
       const inObj = {
