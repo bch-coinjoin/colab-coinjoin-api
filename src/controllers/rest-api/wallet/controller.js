@@ -30,20 +30,20 @@ class WalletRESTControllerLib {
   }
 
   /**
-   * @api {post} /wallet Pass mnemonic and start Colab CoinJoin session
+   * @api {post} /wallet Pass UTXOs and start Colab CoinJoin session
    * @apiPermission public
    * @apiName CoinJoin Wallet
    * @apiGroup REST Wallet
    *
    * @apiExample Example usage:
-   * curl -H "Content-Type: application/json" -X POST -d '{ "mnemonic": "sibling scout snack clump seven plunge canyon away damp penalty nominee shoot" }' localhost:5540/wallet
+   * curl -H "Content-Type: application/json" -X POST -d '{ "bchUtxos": [] }' localhost:5540/wallet
    */
   async startCoinJoin (ctx) {
     try {
       const inObj = ctx.request.body
       console.log(`startCoinJoin REST API handler, body: ${JSON.stringify(inObj, null, 2)}`)
 
-      const success = await this.useCases.coinjoin.startCoinJoin(inObj)
+      const success = this.useCases.coinjoin.startCoinJoin(inObj)
       // const success = true
 
       ctx.body = { success }

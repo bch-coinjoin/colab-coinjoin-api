@@ -22,6 +22,29 @@ class IpfsCoordAdapter {
         pubsub: {
           coinjoinPubsubHandler: () => {}
         }
+      },
+      adapters: {
+        pubsub: {
+          ipfs: {
+            ipfs: {
+              pubsub: {
+                unsubscribe: async () => {}
+              }
+            }
+          },
+          subscribeToPubsubChannel: async () => {},
+          messaging: {
+            publishToPubsubChannel: async () => {}
+          }
+        }
+      },
+      thisNode: {
+        ipfsId: 'fake-ipfs-id',
+        ipfsMultiaddrs: ['fake-multiaddr'],
+        bchAddr: 'fake-bch-addr',
+        slpAddr: 'fake-slp-addr',
+        publicKey: 'fake-public-key',
+        type: 'external'
       }
     }
   }
@@ -69,4 +92,8 @@ const localdb = {
   }
 }
 
-module.exports = { ipfs, localdb }
+const coinjoin = {
+  createTransaction: () => {}
+}
+
+module.exports = { ipfs, localdb, coinjoin }
