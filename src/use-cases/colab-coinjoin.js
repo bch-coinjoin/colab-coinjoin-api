@@ -158,7 +158,7 @@ class ColabCoinJoin {
       console.log(`totalSats: ${totalSats}`)
 
       // Update state
-      this.maxSatsToCoinJoin = totalSats
+      this.maxSatsToCoinJoin = totalSats - 2000
       this.utxos = bchUtxos
       this.outputAddr = outputAddr
       this.changeAddr = changeAddr
